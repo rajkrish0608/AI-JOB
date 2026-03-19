@@ -1,7 +1,10 @@
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings
+from arq import create_pool
+from arq.connections import RedisSettings
 
 class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
@@ -10,10 +13,20 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize background task queue pool
+    redis_settings = RedisSettings(host=os.getenv("REDIS_HOST", "localhost"), port=6379)
+    app.state.redis = await create_pool(redis_settings)
+    yield
+    # Cleanup on shutdown
+    await app.state.redis.close()
+
 app = FastAPI(
     title="AI Job Apply API",
     description="Backend API for AI Job Apply platform",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # CORS configuration
@@ -23,7 +36,8 @@ from routers import (
     jobs_glassdoor, jobs_internshala,
     jobs_aggregator, jobs_scorer,
     resume_builder, resume_renderer, resume_pdf, cover_letter,
-    apply_linkedin, apply_naukri,
+    apply_linkedin, apply_naukri, apply_indeed, apply_internshala,
+    apply_queue,
 )
 
 app.add_middleware(
@@ -50,7 +64,9 @@ app.include_router(resume_renderer.router, prefix="/api", tags=["resume"])
 app.include_router(resume_pdf.router, prefix="/api", tags=["resume"])
 app.include_router(cover_letter.router, prefix="/api", tags=["resume"])
 app.include_router(apply_linkedin.router, prefix="/api", tags=["apply"])
-app.include_router(apply_naukri.router, prefix="/api", tags=["apply"])
+app.include_router(apply_indeed.router, prefix="/api", tags=["apply"])
+app.include_router(apply_internshala.router, prefix="/api", tags=["apply"])
+app.include_router(apply_queue.router, prefix="/api", tags=["apply", "queue"])
 
 @app.get("/health")
 async def health_check():
