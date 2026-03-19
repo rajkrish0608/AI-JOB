@@ -17,6 +17,8 @@ app = FastAPI(
 )
 
 # CORS configuration
+from routers import resume
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Restrict this in production
@@ -24,6 +26,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(resume.router, prefix="/api", tags=["resume"])
 
 @app.get("/health")
 async def health_check():
