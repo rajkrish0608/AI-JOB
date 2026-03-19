@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "sonner"
 import { saveProfile } from "./actions"
+import { calculateProfileScore } from "@/utils/profile-score"
 
 const STEPS = [
   { id: "resume", title: "Smart Resume Parsing" },
@@ -141,7 +142,10 @@ export default function OnboardingForm({ initialData, userId }: { initialData: a
         data.preferred_roles = (data.preferred_roles as string).split(",").map(s => s.trim()).filter(Boolean)
       }
 
-      const result = await saveProfile(userId, data)
+      const result = await saveProfile(userId, {
+        ...data,
+        profile_score: calculateProfileScore(data)
+      })
       if (result.success) {
         toast.success("Profile saved successfully")
         router.push("/dashboard")
@@ -175,7 +179,12 @@ export default function OnboardingForm({ initialData, userId }: { initialData: a
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-sm font-medium">
           <span className="text-primary">Step {currentStep + 1} of {STEPS.length}</span>
-          <span className="text-muted-foreground">{STEPS[currentStep].title}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">{STEPS[currentStep].title}</span>
+            <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-xs">
+              Score: {calculateProfileScore(form.getValues())}/100
+            </span>
+          </div>
         </div>
         <Progress value={((currentStep + 1) / STEPS.length) * 100} className="h-2" />
       </div>

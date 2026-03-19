@@ -5,6 +5,14 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("profile_score")
+    .eq("user_id", user?.id)
+    .single()
+
+  const score = profile?.profile_score ?? 0
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -58,9 +66,9 @@ export default async function DashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0/100</div>
+            <div className="text-2xl font-bold">{score}/100</div>
             <p className="text-xs text-muted-foreground">
-              Complete your profile for better matches
+              {score < 70 ? "Complete your profile for better matches" : "Great job! Your profile is strong."}
             </p>
           </CardContent>
         </Card>
