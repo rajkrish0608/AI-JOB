@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ full_name }} - Resume</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        @page {
+            size: A4;
+            margin: 0.5in;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 10.5pt;
+            line-height: 1.4;
+            color: #1f2937;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            font-size: 26pt;
+            margin: 0 0 4px 0;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.02em;
+        }
+        .contact-info {
+            font-size: 9.5pt;
+            margin-bottom: 20px;
+            color: #4b5563;
+        }
+        .summary {
+            margin-bottom: 20px;
+            color: #374151;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-heading {
+            font-size: 11pt;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #2563eb; /* A nice electric blue accent */
+            margin-bottom: 8px;
+            letter-spacing: 0.05em;
+        }
+        .section-content {
+            margin-top: 4px;
+        }
+        /* Markdown generated HTML styles */
+        ul {
+            margin: 4px 0 10px 0;
+            padding-left: 18px;
+        }
+        li {
+            margin-bottom: 4px;
+        }
+        p {
+            margin: 0 0 6px 0;
+        }
+        strong {
+            font-weight: 600;
+            color: #111827;
+        }
+        em {
+            font-style: italic;
+            color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ full_name }}</h1>
+    <div class="contact-info">
+        {{ contact_line }}
+    </div>
+
+    {% if professional_summary %}
+    <div class="summary">
+        {{ professional_summary }}
+    </div>
+    {% endif %}
+
+    {% for section in sections %}
+    <div class="section">
+        <div class="section-heading">{{ section.heading }}</div>
+        <div class="section-content">
+            {{ section.content_html | safe }}
+        </div>
+    </div>
+    {% endfor %}
+</body>
+</html>
