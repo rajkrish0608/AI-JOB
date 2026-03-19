@@ -17,7 +17,7 @@ app = FastAPI(
 )
 
 # CORS configuration
-from routers import resume, linkedin, portfolio, jobs_linkedin, jobs_naukri
+from routers import resume, linkedin, portfolio, jobs_linkedin, jobs_naukri, jobs_indeed
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,6 +32,7 @@ app.include_router(linkedin.router, prefix="/api", tags=["linkedin"])
 app.include_router(portfolio.router, prefix="/api", tags=["portfolio"])
 app.include_router(jobs_linkedin.router, prefix="/api", tags=["jobs"])
 app.include_router(jobs_naukri.router, prefix="/api", tags=["jobs"])
+app.include_router(jobs_indeed.router, prefix="/api", tags=["jobs"])
 
 @app.get("/health")
 async def health_check():
