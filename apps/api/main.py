@@ -38,6 +38,7 @@ from routers import (
     resume_builder, resume_renderer, resume_pdf, cover_letter,
     apply_linkedin, apply_naukri, apply_indeed, apply_internshala,
     apply_queue, apply_scheduler,
+    hr_email_finder,
 )
 
 app.add_middleware(
@@ -68,6 +69,7 @@ app.include_router(apply_indeed.router, prefix="/api", tags=["apply"])
 app.include_router(apply_internshala.router, prefix="/api", tags=["apply"])
 app.include_router(apply_queue.router, prefix="/api", tags=["apply", "queue"])
 app.include_router(apply_scheduler.router, prefix="/api", tags=["apply", "scheduler"])
+app.include_router(hr_email_finder.router, prefix="/api", tags=["outreach"])
 
 @app.get("/health")
 async def health_check():
