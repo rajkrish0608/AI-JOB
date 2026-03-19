@@ -21,7 +21,7 @@ from routers import (
     resume, linkedin, portfolio,
     jobs_linkedin, jobs_naukri, jobs_indeed,
     jobs_glassdoor, jobs_internshala,
-    jobs_aggregator,
+    jobs_aggregator, jobs_scorer,
 )
 
 app.add_middleware(
@@ -37,6 +37,7 @@ app.include_router(linkedin.router, prefix="/api", tags=["linkedin"])
 app.include_router(portfolio.router, prefix="/api", tags=["portfolio"])
 # Aggregator FIRST so its /api/jobs/aggregate route isn't shadowed
 app.include_router(jobs_aggregator.router, prefix="/api", tags=["jobs"])
+app.include_router(jobs_scorer.router, prefix="/api", tags=["jobs"])
 app.include_router(jobs_linkedin.router, prefix="/api", tags=["jobs"])
 app.include_router(jobs_naukri.router, prefix="/api", tags=["jobs"])
 app.include_router(jobs_indeed.router, prefix="/api", tags=["jobs"])
