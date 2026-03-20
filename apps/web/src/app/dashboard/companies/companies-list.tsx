@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Plus, Building, ExternalLink, MoreVertical, Trash, Briefcase, Users } from "lucide-react"
 import { AddCompanyDialog } from "./add-company-dialog"
+import { ContactsDialog } from "./contacts-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { removeDreamCompany, updateDreamCompanyStatus, DreamCompanyStatus } from "./actions"
@@ -19,6 +20,7 @@ export function CompaniesList({ initialCompanies }: { initialCompanies: any[] })
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [companies, setCompanies] = useState(initialCompanies)
   const [isLoading, setIsLoading] = useState<string | null>(null)
+  const [contactsCompany, setContactsCompany] = useState<any | null>(null)
 
   const handleRemove = async (id: string) => {
     try {
@@ -156,13 +158,16 @@ export function CompaniesList({ initialCompanies }: { initialCompanies: any[] })
                         {company.roles_found_count || 0}
                       </div>
                    </div>
-                   <div className="flex flex-col gap-1.5">
+                   <button
+                     onClick={() => setContactsCompany(company)}
+                     className="flex flex-col gap-1.5 text-left cursor-pointer hover:opacity-70 transition-opacity"
+                   >
                       <span className="text-[10px] uppercase tracking-wider font-semibold text-[var(--text-3)]">Contacts</span>
-                      <div className="flex items-center gap-1.5 text-sm font-medium text-[var(--text-1)] tabular-nums">
-                        <Users className="h-[14px] w-[14px] text-[var(--text-3)]" />
-                        {company.contacts_found_count || 0}
+                      <div className="flex items-center gap-1.5 text-sm font-medium text-[var(--accent)] tabular-nums">
+                        <Users className="h-[14px] w-[14px]" />
+                        {company.contacts_found_count || 0} &rarr;
                       </div>
-                   </div>
+                   </button>
                 </div>
               </CardContent>
             </Card>
@@ -171,6 +176,13 @@ export function CompaniesList({ initialCompanies }: { initialCompanies: any[] })
       )}
 
       <AddCompanyDialog open={isAddOpen} onOpenChange={setIsAddOpen} />
+      {contactsCompany && (
+        <ContactsDialog
+          open={!!contactsCompany}
+          onOpenChange={(open) => !open && setContactsCompany(null)}
+          company={contactsCompany}
+        />
+      )}
     </div>
   )
 }
