@@ -79,16 +79,16 @@ cd AI-JOB
 ## 📋 Implementation Phases
 
 - [x] **P1.1** — Supabase schema + RLS
-- [ ] **P1.2** — FastAPI skeleton
-- [ ] **P1.3** — Next.js skeleton + design tokens
-- [ ] **P1.4** — Auth flow
-- [ ] **P1.5** — Dashboard shell
-- [ ] **Phase 2** — Profile Builder
-- [ ] **Phase 3** — Job Search Engine
-- [ ] **Phase 4** — ATS Resume Generator
-- [ ] **Phase 5** — Auto Apply Engine
-- [ ] **Phase 6** — Cold Email & HR Outreach
-- [ ] **Phase 7** — Dream Company Pipeline
+- [x] **P1.2** — FastAPI skeleton
+- [x] **P1.3** — Next.js skeleton + design tokens
+- [x] **P1.4** — Auth flow
+- [x] **P1.5** — Dashboard shell
+- [x] **Phase 2** — Profile Builder
+- [x] **Phase 3** — Job Search Engine
+- [x] **Phase 4** — ATS Resume Generator
+- [x] **Phase 5** — Auto Apply Engine
+- [x] **Phase 6** — Cold Email & HR Outreach
+- [x] **Phase 7** — Dream Company Pipeline (P7.1, P7.2 Complete)
 - [ ] **Phase 8** — Job Tracker Dashboard
 
 ## 📄 License
