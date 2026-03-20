@@ -66,10 +66,6 @@ export default async function LoginPage(props: {
               Create Account
             </button>
           </div>
-
-          <p className="text-center text-[11px] text-[var(--text-3)]">
-            Demo account: <span className="font-mono text-[var(--text-2)]">demo@aijobapply.com</span> / <span className="font-mono text-[var(--text-2)]">Demo@12345</span>
-          </p>
         </form>
       </div>
     </div>
