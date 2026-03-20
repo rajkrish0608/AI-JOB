@@ -40,7 +40,9 @@ export async function updateSession(request: NextRequest) {
   }
 
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup') || request.nextUrl.pathname.startsWith('/auth')
-  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')  if (!user && isDashboardRoute) {
+  const isDashboardRoute = request.nextUrl.pathname.startsWith('/dashboard')
+  
+  if (!user && isDashboardRoute) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
