@@ -74,4 +74,6 @@ redis==5.2.1
 markdown==3.7
 jinja2==3.1.4
 google-generativeai
+google-api-python-client
+google-auth-oauthlib
 playwright
