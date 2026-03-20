@@ -20,6 +20,7 @@ from routers.apply_naukri import apply_naukri_quick, NaukriApplyRequest
 from routers.apply_indeed import apply_indeed, IndeedApplyRequest
 from routers.apply_internshala import apply_internshala, InternshalaApplyRequest
 from services.dream_scanner import scan_all_companies_for_user
+from services.email_digest import cron_daily_email_digest
 
 
 async def task_apply_linkedin(ctx, job_url: str, cookie: str, profile: dict):
@@ -123,7 +124,8 @@ class WorkerSettings:
         task_scan_dream_companies,   # ← Manual per-user scan
     ]
     cron_jobs = [
-        cron(cron_scan_all_active_users, hour=2, minute=0),   # Daily at 02:00 UTC
+        cron(cron_scan_all_active_users, hour=2, minute=0),   # Daily 02:00 UTC — dream company scan
+        cron(cron_daily_email_digest,    hour=7, minute=0),   # Daily 07:00 UTC — email digest (12:30 IST)
     ]
     redis_settings = RedisSettings(
         host=os.getenv("REDIS_HOST", "localhost"),
