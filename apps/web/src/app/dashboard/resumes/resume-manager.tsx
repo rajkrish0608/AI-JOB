@@ -61,7 +61,8 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
         tone
       }
 
-      const buildRes = await fetch("http://127.0.0.1:8000/api/resume/generate", {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+      const buildRes = await fetch(`${API_BASE}/api/resume/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
@@ -75,7 +76,7 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
       toast.success(`Resume optimized! ATS Match Score: ${buildData.ats_score}/100`)
 
       // 2. Fetch the HTML preview
-      const renderRes = await fetch("http://127.0.0.1:8000/api/resume/render", {
+      const renderRes = await fetch(`${API_BASE}/api/resume/render`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -102,7 +103,8 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
     const toastId = toast.loading("Generating PDF...")
 
     try {
-      const pdfRes = await fetch("http://127.0.0.1:8000/api/resume/pdf", {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+      const pdfRes = await fetch(`${API_BASE}/api/resume/pdf`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -175,7 +177,7 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
             <div className="grid grid-cols-2 gap-3 pt-2 border-t">
               <div className="space-y-1">
                 <Label>Template</Label>
-                <Select value={template} onValueChange={setTemplate}>
+                <Select value={template} onValueChange={(v) => setTemplate(v || "professional")}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select template" />
                   </SelectTrigger>
@@ -187,13 +189,13 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
               </div>
               <div className="space-y-1">
                 <Label>Tone</Label>
-                <Select value={tone} onValueChange={setTone}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select tone" />
-                  </SelectTrigger>
+                <Select value={tone} onValueChange={(v) => setTone(v || "confident")}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="confident">Confident / Bold</SelectItem>
+                    <SelectItem value="confident">Confident</SelectItem>
                     <SelectItem value="formal">Formal / Corporate</SelectItem>
+                    <SelectItem value="enthusiastic">Enthusiastic</SelectItem>
+                    <SelectItem value="conversational">Conversational</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -217,10 +219,10 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
           {previewHtml && (
             <div className="flex items-center gap-2">
               <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="gap-2">
+                <DialogTrigger>
+                  <div className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-3 gap-2 cursor-pointer">
                     <Eye className="h-4 w-4" /> Expand
-                  </Button>
+                  </div>
                 </DialogTrigger>
                 <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 overflow-hidden">
                   <DialogHeader className="p-4 border-b bg-muted/40">

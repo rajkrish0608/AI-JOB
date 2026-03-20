@@ -62,8 +62,10 @@ type GmailTokens = {
   expiry: string | null
 }
 
-const REDIRECT_URI = "http://localhost:3000/dashboard/outreach"
-const API_BASE = "http://127.0.0.1:8000/api"
+const REDIRECT_URI = typeof window !== 'undefined' 
+  ? `${window.location.origin}/dashboard/outreach` 
+  : "http://localhost:3000/dashboard/outreach";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/api`;
 
 // We wrap the main logic in a Suspense-friendly component
 function OutreachContent() {
@@ -472,7 +474,7 @@ function OutreachContent() {
                   
                   <div className="space-y-2">
                     <Label>Email Type</Label>
-                    <Select value={emailType} onValueChange={setEmailType}>
+                    <Select value={emailType} onValueChange={(v) => setEmailType(v || "cold_intro")}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="cold_intro">Direct Intro / Pitch</SelectItem>
@@ -484,7 +486,7 @@ function OutreachContent() {
 
                   <div className="space-y-2">
                     <Label>Tone</Label>
-                    <Select value={tone} onValueChange={setTone}>
+                    <Select value={tone} onValueChange={(v) => setTone(v || "professional")}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="professional">Professional & Direct</SelectItem>

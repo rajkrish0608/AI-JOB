@@ -57,7 +57,8 @@ export function CoverLetterGenerator({ userProfile }: { userProfile: any }) {
         word_count: parseInt(wordCount, 10),
       }
 
-      const res = await fetch("http://127.0.0.1:8000/api/resume/cover-letter", {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
+      const res = await fetch(`${API_BASE}/api/resume/cover-letter`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

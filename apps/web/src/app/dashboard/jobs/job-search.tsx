@@ -14,6 +14,7 @@ interface ScoredJob {
   url: string
   description_snippet?: string
   salary?: string
+  posted?: string
   source: string
   fit_score: number
   fit_reasons: string[]
@@ -64,8 +65,9 @@ export function JobSearch({ userProfile }: { userProfile: any }) {
 
     try {
       // 1. Fetch Aggregated Jobs
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
       const sourcesParam = selectedSources.join(",")
-      const aggUrl = `http://127.0.0.1:8000/api/jobs/aggregate?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}&sources=${sourcesParam}&max_per_source=10`
+      const aggUrl = `${API_BASE}/api/jobs/aggregate?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}&sources=${sourcesParam}&max_per_source=10`
       
       const aggRes = await fetch(aggUrl)
       if (!aggRes.ok) throw new Error("Failed to search jobs")
@@ -101,7 +103,7 @@ export function JobSearch({ userProfile }: { userProfile: any }) {
         jobs: aggData.jobs.slice(0, 15) // Only score top 15 to save tokens/time for now
       }
 
-      const scoreRes = await fetch("http://127.0.0.1:8000/api/jobs/score", {
+      const scoreRes = await fetch(`${API_BASE}/api/jobs/score`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(scoreReqBody)

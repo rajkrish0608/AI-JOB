@@ -94,7 +94,8 @@ export default function OnboardingForm({ initialData, userId }: { initialData: a
     formData.append("file", file)
 
     try {
-      const res = await fetch("http://localhost:8000/api/parse-resume", {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const res = await fetch(`${API_BASE}/api/parse-resume`, {
         method: "POST",
         body: formData
       })
