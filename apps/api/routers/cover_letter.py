@@ -131,8 +131,8 @@ async def generate_cover_letter(body: CoverLetterRequest):
         content = ai_resp.text.strip()
         data = json.loads(content)
 
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="AI returned invalid JSON. Please retry.")
+    except json.JSONDecodeError as jde:
+        raise HTTPException(status_code=500, detail=f"AI returned invalid JSON: {str(jde)}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(exc)}")
 

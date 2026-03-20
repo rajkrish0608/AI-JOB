@@ -24,14 +24,14 @@ router = APIRouter()
 # Configure Gemini
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel(
-    model_name="gemini-1.5-pro",
+    model_name="gemini-1.5-flash",
     generation_config={"response_mime_type": "application/json"}
 )
 
 # ── Models ───────────────────────────────────────────────────────────────────
 
 class ProfileInput(BaseModel):
-    full_name: str
+    full_name: str = "Candidate"
     email: Optional[str] = None
     phone: Optional[str] = None
     location: Optional[str] = None
@@ -176,8 +176,8 @@ IMPORTANT: Tailor the resume specifically for this role. Mirror their language a
         content = ai_resp.text.strip()
         resume_data = json.loads(content)
 
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=500, detail="AI returned invalid JSON. Please retry.")
+    except json.JSONDecodeError as jde:
+        raise HTTPException(status_code=500, detail=f"AI returned invalid JSON: {str(jde)}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Resume generation failed: {str(exc)}")
 
