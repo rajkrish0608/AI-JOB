@@ -74,7 +74,7 @@ export default function DashboardLayout({
         </div>
         <div className="mt-auto p-4 border-t">
           <form action={logout}>
-            <Button variant="outline" className="w-full justify-start gap-3">
+            <Button type="submit" variant="outline" className="w-full justify-start gap-3">
               <LogOut className="h-4 w-4" />
               Sign Out
             </Button>
