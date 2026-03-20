@@ -21,7 +21,8 @@ In production you would add:
 import json
 import re
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
+from typing import Optional
 import httpx
 from bs4 import BeautifulSoup
 from anthropic import AsyncAnthropic
@@ -36,8 +37,8 @@ class LinkedInScrapeRequest(BaseModel):
 
 class LinkedInScrapeResponse(BaseModel):
     status: str
-    data: dict | None = None
-    message: str | None = None
+    data: Optional[dict] = None
+    message: Optional[str] = None
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

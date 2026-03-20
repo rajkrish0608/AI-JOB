@@ -1,12 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { Search, Loader2, MapPin, Building, Briefcase, ExternalLink, Sparkles, CheckCircle2, XCircle } from "lucide-react"
 import { toast } from "sonner"
 
@@ -126,190 +121,194 @@ export function JobSearch({ userProfile }: { userProfile: any }) {
     }
   }
 
+  /* BEFORE: bg-green-500/10 text-green-600 border-green-500/20 */
+  /* AFTER:  var(--bg-overlay), var(--text-1), var(--border) */
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "bg-green-500/10 text-green-600 border-green-500/20"
-    if (score >= 60) return "bg-blue-500/10 text-blue-600 border-blue-500/20"
-    if (score >= 40) return "bg-yellow-500/10 text-yellow-600 border-yellow-500/20"
-    return "bg-slate-500/10 text-slate-600 border-slate-500/20"
+    return "bg-[var(--bg-overlay)] text-[var(--text-1)] border border-[var(--border)]"
   }
 
   return (
     <div className="space-y-6">
       {/* ── Search Form ────────────────────────────────────────────────────── */}
-      <Card>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <Label htmlFor="keywords" className="mb-2 block">Keywords / Title</Label>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="keywords"
-                    placeholder="e.g. React Developer, Product Manager" 
-                    className="pl-9"
-                    value={keywords}
-                    onChange={(e) => setKeywords(e.target.value)}
-                    disabled={isSearching}
-                  />
-                </div>
-              </div>
-              <div className="sm:w-1/3">
-                <Label htmlFor="location" className="mb-2 block">Location</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    id="location"
-                    placeholder="e.g. Bangalore, Remote" 
-                    className="pl-9"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    disabled={isSearching}
-                  />
-                </div>
+      <div className="bg-[var(--bg-raised)] border border-[var(--border)] rounded-[12px] p-[28px] transition-colors duration-200 hover:bg-[var(--bg-overlay)] hover:border-[var(--border-hover)]">
+        <form onSubmit={handleSearch} className="space-y-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <label htmlFor="keywords" className="mb-2 block text-[var(--text-3)] text-xs font-medium uppercase tracking-wider">Keywords / Title</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-[var(--text-3)]" />
+                <input 
+                  id="keywords"
+                  placeholder="e.g. React Developer, Product Manager" 
+                  className="w-full bg-[var(--bg-overlay)] border border-[var(--border)] rounded-[7px] pl-10 pr-3 py-[9px] text-[13px] text-[var(--text-1)] placeholder-[var(--text-4)] focus:outline-none focus:border-[var(--border-hover)] focus:ring-1 focus:ring-[var(--border-hover)] transition-all"
+                  value={keywords}
+                  onChange={(e) => setKeywords(e.target.value)}
+                  disabled={isSearching}
+                />
               </div>
             </div>
+            <div className="sm:w-1/3">
+              <label htmlFor="location" className="mb-2 block text-[var(--text-3)] text-xs font-medium uppercase tracking-wider">Location</label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-[var(--text-3)]" />
+                <input 
+                  id="location"
+                  placeholder="e.g. Bangalore, Remote" 
+                  className="w-full bg-[var(--bg-overlay)] border border-[var(--border)] rounded-[7px] pl-10 pr-3 py-[9px] text-[13px] text-[var(--text-1)] placeholder-[var(--text-4)] focus:outline-none focus:border-[var(--border-hover)] focus:ring-1 focus:ring-[var(--border-hover)] transition-all"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  disabled={isSearching}
+                />
+              </div>
+            </div>
+          </div>
 
-            <div className="pt-2">
-              <Label className="mb-3 block">Platforms to Search</Label>
-              <div className="flex flex-wrap gap-4">
-                {ALL_SOURCES.map(source => (
-                  <div key={source.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`source-${source.id}`} 
-                      checked={selectedSources.includes(source.id)}
-                      onCheckedChange={() => handleSourceToggle(source.id)}
-                      disabled={isSearching}
-                    />
-                    <label 
-                      htmlFor={`source-${source.id}`} 
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      {source.label}
-                    </label>
-                  </div>
-                ))}
-              </div>
+          <div className="pt-2">
+            <label className="mb-3 block text-[var(--text-3)] text-xs font-medium uppercase tracking-wider">Platforms to Search</label>
+            <div className="flex flex-wrap gap-4">
+              {ALL_SOURCES.map(source => (
+                <div key={source.id} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`source-${source.id}`} 
+                    checked={selectedSources.includes(source.id)}
+                    onCheckedChange={() => handleSourceToggle(source.id)}
+                    disabled={isSearching}
+                    className="border-[var(--border)] data-[state=checked]:bg-[var(--accent)] data-[state=checked]:text-[var(--white)]"
+                  />
+                  <label 
+                    htmlFor={`source-${source.id}`} 
+                    className="text-[13px] text-[var(--text-2)] font-medium leading-none cursor-pointer"
+                  >
+                    {source.label}
+                  </label>
+                </div>
+              ))}
             </div>
+          </div>
 
-            <div className="pt-4 flex items-center justify-between">
-              <div className="text-sm text-muted-foreground flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-blue-500" />
-                AI Auto-Scoring Enabled
-              </div>
-              <Button type="submit" disabled={isSearching || isScoring} className="w-full sm:w-auto">
-                {isSearching && !isScoring && <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Scraping Web...</>}
-                {isScoring && <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> AI is Scoring...</>}
-                {!isSearching && !isScoring && "Search Jobs"}
-              </Button>
+          <div className="pt-4 flex items-center justify-between">
+            <div className="text-[13px] text-[var(--text-3)] flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[var(--text-3)]" />
+              AI Auto-Scoring Enabled
             </div>
-          </form>
-        </CardContent>
-      </Card>
+            {/* Primary Button */}
+            <button 
+              type="submit" 
+              disabled={isSearching || isScoring} 
+              className="w-full sm:w-auto bg-[var(--accent)] text-[var(--white)] font-medium text-[13px] px-[18px] py-[9px] rounded-[7px] transition-opacity duration-200 hover:opacity-80 flex items-center justify-center disabled:opacity-50"
+            >
+              {isSearching && !isScoring && <><Loader2 className="mr-2 h-4 w-4 animate-spin text-[var(--text-3)]" /> Scraping Web...</>}
+              {isScoring && <><Loader2 className="mr-2 h-4 w-4 animate-spin text-[var(--text-3)]" /> AI is Scoring...</>}
+              {!isSearching && !isScoring && "Search Jobs"}
+            </button>
+          </div>
+        </form>
+      </div>
 
       {/* ── Results Summary ────────────────────────────────────────────────── */}
       {Object.keys(sourceCounts).length > 0 && !isSearching && !isScoring && (
-         <div className="flex flex-wrap gap-2 items-center text-sm text-muted-foreground p-2">
-           <span className="font-medium text-foreground">Found on:</span>
+         <div className="flex flex-wrap gap-2 items-center text-[13px] text-[var(--text-3)] px-[28px]">
+           <span className="font-medium text-[var(--text-1)]">Found on:</span>
            {Object.entries(sourceCounts).map(([src, count]) => count > 0 && (
-             <Badge key={src} variant="secondary" className="capitalize">
+             <span key={src} className="px-2 py-1 bg-[var(--bg-overlay)] border border-[var(--border)] text-[var(--text-3)] rounded-[4px] capitalize">
                {src}: {count}
-             </Badge>
+             </span>
            ))}
          </div>
       )}
 
       {/* ── Loading States ─────────────────────────────────────────────────── */}
       {(isSearching || isScoring) && (
-        <div className="py-12 flex flex-col items-center justify-center space-y-4 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p>{isScoring ? "Claude is analyzing your fit for these roles..." : "Extracting listings from job portals..."}</p>
+        <div className="py-12 flex flex-col items-center justify-center space-y-4 text-[var(--text-3)]">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <p className="text-[13px] text-[var(--text-2)]">{isScoring ? "Claude is analyzing your fit for these roles..." : "Extracting listings from job portals..."}</p>
         </div>
       )}
 
       {/* ── Job Cards ──────────────────────────────────────────────────────── */}
       {!isSearching && !isScoring && jobs.length > 0 && (
-        <div className="grid gap-4 md:gap-6">
+        <div className="grid gap-[28px] md:gap-[28px]">
           {jobs.map((job, idx) => (
-            <Card key={idx} className="overflow-hidden transition-all hover:shadow-md border-muted/60">
-              <div className="p-0 sm:flex sm:items-stretch">
-                {/* Score Sidebar */}
-                <div className={`flex flex-col items-center justify-center p-4 sm:w-32 border-b sm:border-b-0 sm:border-r ${getScoreColor(job.fit_score)}`}>
-                  <div className="text-4xl font-bold tracking-tighter">{job.fit_score || "?"}</div>
-                  <div className="text-xs font-semibold uppercase tracking-wider mt-1 opacity-80">Fit Score</div>
-                </div>
+            <div key={idx} className="bg-[var(--bg-raised)] border border-[var(--border)] rounded-[12px] p-[28px] sm:flex sm:items-stretch transition-colors duration-200 hover:bg-[var(--bg-overlay)] hover:border-[var(--border-hover)]">
+              
+              {/* Score Sidebar */}
+              <div className={`flex flex-col items-center justify-center p-4 sm:w-32 border-b sm:border-b-0 sm:border-r border-[var(--border)] mr-6 mb-6 sm:mb-0`}>
+                <div className="text-4xl font-bold tracking-tighter text-[var(--text-1)]">{job.fit_score || "?"}</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] mt-2 text-[var(--text-3)] text-center">Fit Score</div>
+              </div>
 
-                {/* Main Content */}
-                <div className="flex-1 p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge variant="outline" className="capitalize bg-background">{job.source}</Badge>
-                        {job.posted && <span className="text-xs text-muted-foreground">{job.posted}</span>}
-                      </div>
-                      <h3 className="text-xl font-semibold leading-tight mb-1">
-                        <a href={job.url} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                          {job.title} <ExternalLink className="h-3.5 w-3.5 opacity-50" />
-                        </a>
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-                        <div className="flex items-center gap-1.5 ">
-                          <Building className="h-4 w-4" /> {job.company}
-                        </div>
-                        {job.location && (
-                          <div className="flex items-center gap-1.5">
-                            <MapPin className="h-4 w-4" /> {job.location}
-                          </div>
-                        )}
-                        {job.salary && (
-                          <div className="flex items-center gap-1.5 text-green-600 font-medium">
-                            <Briefcase className="h-4 w-4" /> {job.salary}
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-sm line-clamp-2 text-muted-foreground mb-4">
-                        {job.description_snippet}
-                      </p>
+              {/* Main Content */}
+              <div className="flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="px-2 py-1 bg-[var(--bg-overlay)] border border-[var(--border)] text-[var(--text-3)] rounded-[4px] capitalize text-[11px] font-medium tracking-wide">
+                        {job.source}
+                      </span>
+                      {job.posted && <span className="text-[13px] text-[var(--text-3)]">{job.posted}</span>}
                     </div>
-                  </div>
-
-                  {/* AI Explanations */}
-                  {job.fit_score > 0 && (
-                    <div className="grid sm:grid-cols-2 gap-4 mt-2">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold flex items-center gap-1.5 text-foreground">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" /> Why you're a fit
-                        </h4>
-                        <ul className="text-sm space-y-1 text-muted-foreground">
-                          {job.fit_reasons?.map((reason, i) => (
-                            <li key={i} className="flex items-start gap-1.5">
-                              <span className="text-green-500 mt-0.5">•</span> 
-                              <span>{reason}</span>
-                            </li>
-                          ))}
-                        </ul>
+                    <h3 className="text-xl font-semibold leading-tight mb-2 text-[var(--text-1)]">
+                      <a href={job.url} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--text-1)] flex items-center gap-1.5 transition-colors">
+                        {job.title} <ExternalLink className="h-3.5 w-3.5 text-[var(--text-3)]" />
+                      </a>
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-4 text-[13px] text-[var(--text-3)] mb-5">
+                      <div className="flex items-center gap-1.5">
+                        <Building className="h-4 w-4" /> {job.company}
                       </div>
-                      
-                      {job.missing_skills && job.missing_skills.length > 0 && (
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold flex items-center gap-1.5 text-foreground">
-                            <XCircle className="h-4 w-4 text-orange-500" /> Missing Skills
-                          </h4>
-                          <div className="flex flex-wrap gap-1.5">
-                            {job.missing_skills.map((skill, i) => (
-                              <Badge key={i} variant="secondary" className="bg-orange-500/10 text-orange-600 hover:bg-orange-500/20">
-                                {skill}
-                              </Badge>
-                            ))}
-                          </div>
+                      {job.location && (
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="h-4 w-4" /> {job.location}
+                        </div>
+                      )}
+                      {job.salary && (
+                        <div className="flex items-center gap-1.5">
+                          <Briefcase className="h-4 w-4" /> {job.salary}
                         </div>
                       )}
                     </div>
-                  )}
-
+                    <p className="text-[13px] line-clamp-3 text-[var(--text-2)] leading-relaxed mb-6">
+                      {job.description_snippet}
+                    </p>
+                  </div>
                 </div>
+
+                {/* AI Explanations */}
+                {job.fit_score > 0 && (
+                  <div className="grid sm:grid-cols-2 gap-6 pt-6 border-t border-[var(--border)]">
+                    <div className="space-y-3">
+                      <h4 className="text-[13px] font-medium flex items-center gap-2 text-[var(--text-1)] uppercase tracking-wide">
+                        <CheckCircle2 className="h-4 w-4 text-[var(--text-3)]" /> Why you're a fit
+                      </h4>
+                      <ul className="text-[13px] space-y-2 text-[var(--text-2)]">
+                        {job.fit_reasons?.map((reason, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="text-[var(--text-3)] mt-0.5">•</span> 
+                            <span>{reason}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    {job.missing_skills && job.missing_skills.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-[13px] font-medium flex items-center gap-2 text-[var(--text-1)] uppercase tracking-wide">
+                          <XCircle className="h-4 w-4 text-[var(--text-3)]" /> Missing Skills
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                          {job.missing_skills.map((skill, i) => (
+                            <span key={i} className="px-2.5 py-1 bg-[var(--bg-overlay)] border border-[var(--border)] text-[var(--text-3)] text-[12px] rounded-[4px]">
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </Card>
+              
+            </div>
           ))}
         </div>
       )}

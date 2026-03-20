@@ -15,6 +15,7 @@ import json
 import re
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from anthropic import AsyncAnthropic
 
 router = APIRouter()
@@ -24,12 +25,12 @@ client = AsyncAnthropic()
 
 class ProfileInput(BaseModel):
     full_name: str
-    email: str | None = None
-    phone: str | None = None
-    location: str | None = None
-    linkedin_url: str | None = None
-    portfolio_url: str | None = None
-    summary: str | None = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    location: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    summary: Optional[str] = None
     skills: list[str] = []
     experience: list[dict] = []
     education: list[dict] = []
@@ -40,13 +41,13 @@ class ProfileInput(BaseModel):
 class TargetJob(BaseModel):
     title: str
     company: str
-    description: str | None = None
+    description: Optional[str] = None
     required_skills: list[str] = []
     preferred_skills: list[str] = []
 
 class ResumeGenerateRequest(BaseModel):
     profile: ProfileInput
-    target_job: TargetJob | None = None
+    target_job: Optional[TargetJob] = None
     template: str = "professional"  # professional, modern, minimal, technical
     tone: str = "confident"         # confident, formal, creative
 
@@ -60,7 +61,7 @@ class GeneratedResume(BaseModel):
     professional_summary: str
     sections: list[ResumeSection]
     ats_keywords: list[str]
-    tailoring_notes: str | None = None
+    tailoring_notes: Optional[str] = None
 
 class ResumeGenerateResponse(BaseModel):
     status: str
@@ -210,7 +211,7 @@ IMPORTANT: Tailor the resume specifically for this role. Mirror their language a
     )
 
 
-def _estimate_ats_score(resume: GeneratedResume, target_job: TargetJob | None) -> int:
+def _estimate_ats_score(resume: GeneratedResume, target_job: Optional[TargetJob]) -> int:
     """
     Heuristic ATS compatibility score.
     A real ATS would parse for keywords, formatting, etc.

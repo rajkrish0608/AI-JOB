@@ -176,7 +176,7 @@ export function CoverLetterGenerator({ userProfile }: { userProfile: any }) {
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">{result.word_count} words</span>
               <Button variant="outline" size="sm" className="gap-2" onClick={handleCopy}>
-                {copied ? <CheckCheck className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                {copied ? <CheckCheck className="h-4 w-4 text-[var(--text-3)]" /> : <Copy className="h-4 w-4" />}
                 {copied ? "Copied!" : "Copy"}
               </Button>
             </div>

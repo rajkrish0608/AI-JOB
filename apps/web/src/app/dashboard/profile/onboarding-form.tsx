@@ -247,14 +247,14 @@ export default function OnboardingForm({ initialData, userId }: { initialData: a
             {currentStep === 1 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>First Name <span className="text-red-500">*</span></Label>
+                  <Label>First Name <span className="text-destructive">*</span></Label>
                   <Input {...form.register("first_name")} />
-                  {form.formState.errors.first_name && <p className="text-xs text-red-500">{form.formState.errors.first_name.message}</p>}
+                  {form.formState.errors.first_name && <p className="text-xs text-destructive">{form.formState.errors.first_name.message}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label>Last Name <span className="text-red-500">*</span></Label>
+                  <Label>Last Name <span className="text-destructive">*</span></Label>
                   <Input {...form.register("last_name")} />
-                  {form.formState.errors.last_name && <p className="text-xs text-red-500">{form.formState.errors.last_name.message}</p>}
+                  {form.formState.errors.last_name && <p className="text-xs text-destructive">{form.formState.errors.last_name.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label>Phone</Label>

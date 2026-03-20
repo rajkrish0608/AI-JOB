@@ -15,6 +15,7 @@ import json
 import re
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 import httpx
 from bs4 import BeautifulSoup
 from anthropic import AsyncAnthropic
@@ -27,8 +28,8 @@ class PortfolioScrapeRequest(BaseModel):
 
 class PortfolioScrapeResponse(BaseModel):
     status: str
-    data: dict | None = None
-    message: str | None = None
+    data: Optional[dict] = None
+    message: Optional[str] = None
 
 HEADERS = {
     "User-Agent": (

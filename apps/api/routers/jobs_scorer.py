@@ -18,6 +18,7 @@ import json
 import re
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from anthropic import AsyncAnthropic
 
 router = APIRouter()
@@ -31,16 +32,16 @@ class UserProfile(BaseModel):
     education: list[dict] = []
     preferred_roles: list[str] = []
     preferred_locations: list[str] = []
-    preferred_job_type: str | None = None  # Full-time, Part-time, etc.
-    years_of_experience: int | None = None
+    preferred_job_type: Optional[str] = None  # Full-time, Part-time, etc.
+    years_of_experience: Optional[int] = None
 
 class JobToScore(BaseModel):
     title: str
     company: str
     location: str
     url: str
-    description_snippet: str | None = None
-    salary: str | None = None
+    description_snippet: Optional[str] = None
+    salary: Optional[str] = None
     source: str
 
 class ScoredJob(BaseModel):
@@ -48,8 +49,8 @@ class ScoredJob(BaseModel):
     company: str
     location: str
     url: str
-    description_snippet: str | None = None
-    salary: str | None = None
+    description_snippet: Optional[str] = None
+    salary: Optional[str] = None
     source: str
     fit_score: int  # 0-100
     fit_reasons: list[str]
