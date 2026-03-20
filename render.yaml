@@ -1,36 +1,17 @@
 services:
-  # 1. FastAPI Web Service (The API)
+  # 1. FastAPI Web Service + Background Worker (Combined for Free Tier)
   - type: web
     name: ai-job-apply-api
     env: python
     buildCommand: "cd apps/api && pip install -r requirements.txt"
-    startCommand: "cd apps/api && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    # Launch both the ARQ worker in the background and uvicorn in the foreground
+    startCommand: "cd apps/api && (arq worker.WorkerSettings &) && uvicorn main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHONPATH
         value: apps/api
       - key: API_ENV
         value: production
       # User must fill these in Render Dashboard
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: APIFY_API_TOKEN
-        sync: false
-
-  # 2. Background Worker (ARQ)
-  - type: worker
-    name: ai-job-apply-worker
-    env: python
-    buildCommand: "cd apps/api && pip install -r requirements.txt"
-    startCommand: "cd apps/api && arq worker.WorkerSettings"
-    envVars:
-      - key: PYTHONPATH
-        value: apps/api
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
