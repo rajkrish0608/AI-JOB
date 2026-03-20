@@ -1,10 +1,16 @@
-import os
 from contextlib import asynccontextmanager
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from the root .env file
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings
 from arq import create_pool
 from arq.connections import RedisSettings
+from utils import get_redis_settings
 
 class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
@@ -16,7 +22,7 @@ settings = Settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize background task queue pool
-    redis_settings = RedisSettings(host=os.getenv("REDIS_HOST", "localhost"), port=6379)
+    redis_settings = get_redis_settings()
     app.state.redis = await create_pool(redis_settings)
     yield
     # Cleanup on shutdown

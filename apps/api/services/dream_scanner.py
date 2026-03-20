@@ -19,27 +19,41 @@ import asyncio
 import os
 from datetime import datetime, timezone
 from typing import Optional
+from dotenv import load_dotenv
+
+# Load environment variables from the root .env file
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
 import httpx
 from supabase import acreate_client, AsyncClient
 
 # ── Environment ──────────────────────────────────────────────────────────────
 
-SUPABASE_URL         = os.getenv("NEXT_PUBLIC_SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
-SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
-HUNTER_API_KEY       = os.getenv("HUNTER_API_KEY", "")
-APOLLO_API_KEY       = os.getenv("APOLLO_API_KEY", "")
+def _supabase_url():
+    return os.getenv("NEXT_PUBLIC_SUPABASE_URL", os.getenv("SUPABASE_URL", ""))
+
+def _supabase_key():
+    return os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+
+def _hunter_key():
+    return os.getenv("HUNTER_API_KEY", "")
+
+def _apollo_key():
+    return os.getenv("APOLLO_API_KEY", "")
+
 INTERNAL_API_BASE    = "http://127.0.0.1:8000"
 
 HR_TITLE_KEYWORDS = [
     "hr", "human resource", "talent", "recruiter", "recruiting",
     "hiring manager", "talent acquisition", "staffing", "head of people", "people ops",
+    "people operations", "director", "manager", "lead", "head of",
+    "vp", "vice president", "chief", "engineering manager",
 ]
 
 # ── Supabase admin client (bypasses RLS using service role key) ──────────────
 
 async def _get_supabase() -> AsyncClient:
-    return await acreate_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+    return await acreate_client(_supabase_url(), _supabase_key())
 
 
 # ── Job scanning logic ────────────────────────────────────────────────────────
@@ -75,20 +89,19 @@ async def _find_contacts(company_name: str, company_domain: Optional[str], max_r
     contacts: list[dict] = []
 
     # --- Hunter.io ---
-    if HUNTER_API_KEY and company_domain:
+    all_hunter_contacts: list[dict] = []
+    if _hunter_key() and company_domain:
         try:
             async with httpx.AsyncClient(timeout=12) as client:
                 r = await client.get(
                     "https://api.hunter.io/v2/domain-search",
-                    params={"domain": company_domain, "api_key": HUNTER_API_KEY, "limit": max_results * 2},
+                    params={"domain": company_domain, "api_key": _hunter_key(), "limit": min(10, max_results * 3)},
                 )
                 if r.status_code == 200:
                     emails = r.json().get("data", {}).get("emails", [])
                     for e in emails:
                         title = (e.get("position") or "").lower()
-                        if not any(kw in title for kw in HR_TITLE_KEYWORDS):
-                            continue
-                        contacts.append({
+                        contact_dict = {
                             "contact_name": f"{e.get('first_name', '')} {e.get('last_name', '')}".strip() or "Unknown",
                             "contact_title": e.get("position"),
                             "contact_email": e.get("value"),
@@ -97,20 +110,26 @@ async def _find_contacts(company_name: str, company_domain: Optional[str], max_r
                             "source": "hunter",
                             "company_name": company_name,
                             "company_domain": company_domain,
-                        })
+                        }
+                        # Prioritize HR-related contacts
+                        if any(kw in title for kw in HR_TITLE_KEYWORDS):
+                            contacts.append(contact_dict)
+                        else:
+                            all_hunter_contacts.append(contact_dict)
                         if len(contacts) >= max_results:
                             break
         except Exception:
             pass
 
-    # --- Apollo.io ---
-    if APOLLO_API_KEY and len(contacts) < max_results:
+    # --- Apollo.io (free-tier compatible endpoint) ---
+    if _apollo_key() and len(contacts) < max_results:
         try:
             async with httpx.AsyncClient(timeout=12) as client:
                 r = await client.post(
-                    "https://api.apollo.io/v1/mixed_people/search",
-                    headers={"Content-Type": "application/json", "X-Api-Key": APOLLO_API_KEY},
+                    "https://api.apollo.io/api/v1/people/search",
+                    headers={"Content-Type": "application/json"},
                     json={
+                        "api_key": _apollo_key(),
                         "q_organization_name": company_name,
                         "person_titles": ["HR Manager", "Recruiter", "Technical Recruiter", "Talent Acquisition", "Hiring Manager"],
                         "page": 1,
@@ -132,6 +151,10 @@ async def _find_contacts(company_name: str, company_domain: Optional[str], max_r
                         })
         except Exception:
             pass
+
+    # Fallback: if no HR-specific contacts found, use general Hunter contacts
+    if not contacts and all_hunter_contacts:
+        contacts = all_hunter_contacts
 
     return contacts[:max_results]
 
@@ -234,7 +257,7 @@ async def scan_all_companies_for_user(user_id: str) -> list[dict]:
     Fetches every 'active' dream company for a user and scans each one.
     Suitable for calling from the arq worker and the API trigger endpoint.
     """
-    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+    if not _supabase_url() or not _supabase_key():
         return [{"error": "Supabase not configured"}]
 
     db = await _get_supabase()

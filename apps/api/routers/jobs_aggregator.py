@@ -24,6 +24,7 @@ import asyncio
 import re
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
+from typing import Optional
 import httpx
 
 router = APIRouter()
@@ -35,10 +36,10 @@ class AggregatedJob(BaseModel):
     company: str
     location: str
     url: str
-    posted: str | None = None
-    description_snippet: str | None = None
-    salary: str | None = None
-    experience: str | None = None
+    posted: Optional[str] = None
+    description_snippet: Optional[str] = None
+    salary: Optional[str] = None
+    experience: Optional[str] = None
     source: str
 
 class AggregateResponse(BaseModel):
@@ -46,7 +47,7 @@ class AggregateResponse(BaseModel):
     total: int
     jobs: list[AggregatedJob]
     source_counts: dict[str, int]
-    message: str | None = None
+    message: Optional[str] = None
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────

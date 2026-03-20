@@ -11,6 +11,7 @@ To run:
 import os
 from arq import worker, cron
 from arq.connections import RedisSettings
+from utils import get_redis_settings
 
 # We can import our Playwright router logic directly.
 # For Clean Architecture, the logic in routers should ideally be extracted 
@@ -127,9 +128,6 @@ class WorkerSettings:
         cron(cron_scan_all_active_users, hour=2, minute=0),   # Daily 02:00 UTC — dream company scan
         cron(cron_daily_email_digest,    hour=7, minute=0),   # Daily 07:00 UTC — email digest (12:30 IST)
     ]
-    redis_settings = RedisSettings(
-        host=os.getenv("REDIS_HOST", "localhost"),
-        port=6379,
-    )
+    redis_settings = get_redis_settings()
     max_jobs = 10  # Control browser concurrency
     job_timeout = 300  # 5 minutes max per application

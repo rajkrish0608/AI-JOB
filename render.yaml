@@ -1,0 +1,51 @@
+services:
+  # 1. FastAPI Web Service (The API)
+  - type: web
+    name: ai-job-apply-api
+    env: python
+    buildCommand: "cd apps/api && pip install -r requirements.txt"
+    startCommand: "cd apps/api && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHONPATH
+        value: apps/api
+      - key: API_ENV
+        value: production
+      # User must fill these in Render Dashboard
+      - fromContext: parameter
+        key: SUPABASE_URL
+      - fromContext: parameter
+        key: SUPABASE_SERVICE_ROLE_KEY
+      - fromContext: parameter
+        key: REDIS_URL
+      - fromContext: parameter
+        key: GEMINI_API_KEY
+      - fromContext: parameter
+        key: APIFY_API_TOKEN
+
+  # 2. Background Worker (ARQ)
+  - type: worker
+    name: ai-job-apply-worker
+    env: python
+    buildCommand: "cd apps/api && pip install -r requirements.txt"
+    startCommand: "cd apps/api && arq worker.WorkerSettings"
+    envVars:
+      - key: PYTHONPATH
+        value: apps/api
+      - fromContext: parameter
+        key: SUPABASE_URL
+      - fromContext: parameter
+        key: SUPABASE_SERVICE_ROLE_KEY
+      - fromContext: parameter
+        key: REDIS_URL
+      - fromContext: parameter
+        key: GEMINI_API_KEY
+      - fromContext: parameter
+        key: APIFY_API_TOKEN
+      - fromContext: parameter
+        key: SMTP_HOST
+      - fromContext: parameter
+        key: SMTP_PORT
+      - fromContext: parameter
+        key: SMTP_USER
+      - fromContext: parameter
+        key: SMTP_PASS

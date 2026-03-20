@@ -4,6 +4,18 @@
 -- Description: All core tables, indexes, RLS policies, and storage buckets
 -- ============================================================================
 
+-- ============================================================================
+-- 0. CLEANUP (Optional: for fresh starts)
+-- ============================================================================
+DROP VIEW IF EXISTS public.daily_application_counts;
+DROP VIEW IF EXISTS public.user_application_stats;
+DROP TABLE IF EXISTS public.applications;
+DROP TABLE IF EXISTS public.generated_resumes;
+DROP TABLE IF EXISTS public.dream_companies;
+DROP TABLE IF EXISTS public.job_listings;
+DROP TABLE IF EXISTS public.user_profiles;
+DROP TABLE IF EXISTS public.users;
+
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -230,7 +242,67 @@ CREATE POLICY "Service role can manage job listings"
     WITH CHECK (TRUE);
 
 -- ============================================================================
--- 4. APPLICATIONS TABLE
+-- 4. GENERATED RESUMES TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.generated_resumes (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    job_id UUID REFERENCES public.job_listings(id) ON DELETE SET NULL,
+
+    -- Resume content
+    resume_html TEXT,
+    resume_json JSONB,
+    template_used TEXT CHECK (template_used IN ('fresher', 'experienced')),
+
+    -- Generated files
+    pdf_url TEXT,
+    pdf_storage_path TEXT,
+
+    -- Cover letter
+    cover_letter TEXT,
+
+    -- Generation metadata
+    model_used TEXT DEFAULT 'claude-sonnet-4-20250514',
+    prompt_tokens_used INTEGER,
+    completion_tokens_used INTEGER,
+    generation_time_ms INTEGER,
+
+    -- User modifications
+    is_user_edited BOOLEAN NOT NULL DEFAULT FALSE,
+    edited_sections JSONB DEFAULT '[]'::JSONB,
+
+    -- Metadata
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_generated_resumes_user_id ON public.generated_resumes(user_id);
+CREATE INDEX IF NOT EXISTS idx_generated_resumes_job_id ON public.generated_resumes(job_id);
+CREATE INDEX IF NOT EXISTS idx_generated_resumes_created_at ON public.generated_resumes(created_at DESC);
+
+-- RLS
+ALTER TABLE public.generated_resumes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own resumes"
+    ON public.generated_resumes FOR SELECT
+    USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own resumes"
+    ON public.generated_resumes FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own resumes"
+    ON public.generated_resumes FOR UPDATE
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own resumes"
+    ON public.generated_resumes FOR DELETE
+    USING (auth.uid() = user_id);
+
+-- ============================================================================
+-- 5. APPLICATIONS TABLE
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.applications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -297,66 +369,6 @@ CREATE POLICY "Users can update own applications"
 
 CREATE POLICY "Users can delete own applications"
     ON public.applications FOR DELETE
-    USING (auth.uid() = user_id);
-
--- ============================================================================
--- 5. GENERATED RESUMES TABLE
--- ============================================================================
-CREATE TABLE IF NOT EXISTS public.generated_resumes (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    job_id UUID REFERENCES public.job_listings(id) ON DELETE SET NULL,
-
-    -- Resume content
-    resume_html TEXT,
-    resume_json JSONB,
-    template_used TEXT CHECK (template_used IN ('fresher', 'experienced')),
-
-    -- Generated files
-    pdf_url TEXT,
-    pdf_storage_path TEXT,
-
-    -- Cover letter
-    cover_letter TEXT,
-
-    -- Generation metadata
-    model_used TEXT DEFAULT 'claude-sonnet-4-20250514',
-    prompt_tokens_used INTEGER,
-    completion_tokens_used INTEGER,
-    generation_time_ms INTEGER,
-
-    -- User modifications
-    is_user_edited BOOLEAN NOT NULL DEFAULT FALSE,
-    edited_sections JSONB DEFAULT '[]'::JSONB,
-
-    -- Metadata
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Indexes
-CREATE INDEX IF NOT EXISTS idx_generated_resumes_user_id ON public.generated_resumes(user_id);
-CREATE INDEX IF NOT EXISTS idx_generated_resumes_job_id ON public.generated_resumes(job_id);
-CREATE INDEX IF NOT EXISTS idx_generated_resumes_created_at ON public.generated_resumes(created_at DESC);
-
--- RLS
-ALTER TABLE public.generated_resumes ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view own resumes"
-    ON public.generated_resumes FOR SELECT
-    USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own resumes"
-    ON public.generated_resumes FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own resumes"
-    ON public.generated_resumes FOR UPDATE
-    USING (auth.uid() = user_id)
-    WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own resumes"
-    ON public.generated_resumes FOR DELETE
     USING (auth.uid() = user_id);
 
 -- ============================================================================

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
-from typing import Any
+from typing import Any, Union, Optional
 
 router = APIRouter()
 
 class EnqueueRequest(BaseModel):
     platform: str
     job_url: str
-    auth_cookies: dict | str  # string for linkedin (li_at), dict for others
+    auth_cookies: Union[dict, str]  # string for linkedin (li_at), dict for others
     profile: dict
 
 @router.post("/apply/queue")

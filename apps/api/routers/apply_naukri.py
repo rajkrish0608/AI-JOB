@@ -15,6 +15,8 @@ Endpoint:
 import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
+from pydantic import BaseModel
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 from anthropic import AsyncAnthropic
 
@@ -33,14 +35,14 @@ class NaukriApplyRequest(BaseModel):
 class NaukriStepLog(BaseModel):
     step: str
     status: str
-    detail: str | None = None
+    detail: Optional[str] = None
 
 class NaukriApplyResponse(BaseModel):
     status: str  # applied, already_applied, failed, questionnaire_failed
-    job_title: str | None = None
-    company: str | None = None
+    job_title: Optional[str] = None
+    company: Optional[str] = None
     steps: list[NaukriStepLog]
-    error: str | None = None
+    error: Optional[str] = None
 
 
 async def _ai_answer(question: str, options: list[str], profile: dict) -> str:

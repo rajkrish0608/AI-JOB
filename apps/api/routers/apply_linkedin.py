@@ -16,6 +16,7 @@ import json
 import re
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 from anthropic import AsyncAnthropic
 
@@ -27,7 +28,7 @@ ai_client = AsyncAnthropic()
 class LinkedInApplyRequest(BaseModel):
     job_url: str                        # Full LinkedIn job URL
     li_at_cookie: str                   # LinkedIn auth cookie
-    resume_pdf_url: str | None = None   # Pre-generated resume PDF URL
+    resume_pdf_url: Optional[str] = None   # Pre-generated resume PDF URL
     profile: dict                       # User profile for answering questions
     headless: bool = True               # Run browser headless?
     timeout_seconds: int = 60
@@ -35,14 +36,14 @@ class LinkedInApplyRequest(BaseModel):
 class ApplyStepLog(BaseModel):
     step: str
     status: str  # success, skipped, failed
-    detail: str | None = None
+    detail: Optional[str] = None
 
 class LinkedInApplyResponse(BaseModel):
     status: str   # applied, already_applied, failed, requires_external
-    job_title: str | None = None
-    company: str | None = None
+    job_title: Optional[str] = None
+    company: Optional[str] = None
     steps: list[ApplyStepLog]
-    error: str | None = None
+    error: Optional[str] = None
 
 
 async def _ai_answer_question(question: str, options: list[str], profile: dict) -> str:

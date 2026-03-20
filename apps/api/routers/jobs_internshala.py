@@ -11,6 +11,7 @@ Strategy:
 import re
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+from typing import Optional
 import httpx
 from bs4 import BeautifulSoup
 
@@ -23,16 +24,16 @@ class JobListing(BaseModel):
     company: str
     location: str
     url: str
-    posted: str | None = None
-    description_snippet: str | None = None
-    salary: str | None = None
+    posted: Optional[str] = None
+    description_snippet: Optional[str] = None
+    salary: Optional[str] = None
     source: str = "internshala"
 
 class JobSearchResponse(BaseModel):
     status: str
     total: int
     jobs: list[JobListing]
-    message: str | None = None
+    message: Optional[str] = None
 
 # ── Constants ────────────────────────────────────────────────────────────────
 

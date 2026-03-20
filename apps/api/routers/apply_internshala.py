@@ -16,6 +16,7 @@ Endpoint:
 import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
 from anthropic import AsyncAnthropic
 
@@ -34,14 +35,14 @@ class InternshalaApplyRequest(BaseModel):
 class ApplyStepLog(BaseModel):
     step: str
     status: str
-    detail: str | None = None
+    detail: Optional[str] = None
 
 class InternshalaApplyResponse(BaseModel):
     status: str  # applied, already_applied, failed, requires_external
-    job_title: str | None = None
-    company: str | None = None
+    job_title: Optional[str] = None
+    company: Optional[str] = None
     steps: list[ApplyStepLog]
-    error: str | None = None
+    error: Optional[str] = None
 
 
 async def _generate_cover_snippet(job_title: str, company: str, profile: dict) -> str:

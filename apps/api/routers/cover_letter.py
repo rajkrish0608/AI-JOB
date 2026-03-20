@@ -13,6 +13,7 @@ Returns the generated text in Markdown and plain text formats.
 import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from anthropic import AsyncAnthropic
 
 router = APIRouter()
@@ -31,7 +32,7 @@ class CoverLetterJob(BaseModel):
     title: str
     company: str
     description: str
-    hiring_manager: str | None = None
+    hiring_manager: Optional[str] = None
 
 class CoverLetterRequest(BaseModel):
     profile: CoverLetterProfile
