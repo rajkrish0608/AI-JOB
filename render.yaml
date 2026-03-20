@@ -23,6 +23,10 @@ services:
         sync: false
       - key: APIFY_API_TOKEN
         sync: false
+      - key: HUNTER_API_KEY
+        sync: false
+      - key: APOLLO_API_KEY
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
