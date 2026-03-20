@@ -100,3 +100,42 @@ export async function removeContact(id: string) {
   revalidatePath('/dashboard/companies')
   return { success: true }
 }
+
+export async function discoverContacts(
+  companyId: string,
+  companyName: string,
+  companyDomain: string | null
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error("Unauthorized")
+
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+
+  const res = await fetch(`${API_BASE}/api/companies/discover`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: user.id,
+      company_id: companyId,
+      company_name: companyName,
+      company_domain: companyDomain,
+      max_results: 10,
+    }),
+  })
+
+  if (!res.ok) {
+    const err = await res.text()
+    throw new Error(`Discovery failed: ${err}`)
+  }
+
+  const data = await res.json()
+
+  revalidatePath('/dashboard/companies')
+  return {
+    discovered: data.discovered as number,
+    inserted: data.inserted as number,
+    contacts: data.contacts as any[],
+  }
+}

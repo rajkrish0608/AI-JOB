@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { addCompanyContact, getCompanyContacts } from "./contact-actions"
+import { addCompanyContact, getCompanyContacts, discoverContacts } from "./contact-actions"
 import { ContactRow } from "./contact-row"
-import { Loader2, Plus, Users } from "lucide-react"
+import { Loader2, Plus, Users, Search } from "lucide-react"
 import { toast } from "sonner"
 
 type ContactRole = 'hr' | 'recruiter' | 'talent_acquisition' | 'hiring_manager' | 'engineering_manager' | 'employee' | 'other'
@@ -37,6 +37,7 @@ export function ContactsDialog({
   const [isAdding, setIsAdding] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [selectedRole, setSelectedRole] = useState<string>("")
+  const [isDiscovering, setIsDiscovering] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -77,6 +78,31 @@ export function ContactsDialog({
     setContacts(prev => prev.filter(c => c.id !== id))
   }
 
+  const handleDiscover = async () => {
+    setIsDiscovering(true)
+    try {
+      const result = await discoverContacts(
+        company.id,
+        company.company_name,
+        company.company_domain || null
+      )
+      if (result.inserted > 0) {
+        toast.success(`Found ${result.discovered} contacts, added ${result.inserted} new`)
+        // Refresh the list
+        const refreshed = await getCompanyContacts(company.id)
+        setContacts(refreshed)
+      } else if (result.discovered > 0) {
+        toast.info(`Found ${result.discovered} contacts, but all are already in your list`)
+      } else {
+        toast.info("No new contacts discovered. Try adding contacts manually.")
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Auto-discovery failed")
+    } finally {
+      setIsDiscovering(false)
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[520px] bg-[var(--bg-raised)] border border-[var(--border)] text-[var(--text-1)] p-6 rounded-[16px] shadow-2xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -98,7 +124,15 @@ export function ContactsDialog({
                 <Users className="h-5 w-5 text-[var(--text-3)]" />
               </div>
               <p className="text-[13px] font-medium text-[var(--text-1)] mb-1">No contacts yet</p>
-              <p className="text-[12px] text-[var(--text-3)] mb-4">Add recruiters and hiring managers to target.</p>
+              <p className="text-[12px] text-[var(--text-3)] mb-4">Auto-discover recruiters via Hunter.io & Apollo, or add them manually.</p>
+              <Button
+                onClick={handleDiscover}
+                disabled={isDiscovering}
+                className="gap-2 bg-[var(--accent)] text-white hover:opacity-80 transition-opacity border-0 rounded-[8px] text-[13px] font-medium px-5 h-9"
+              >
+                {isDiscovering ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+                {isDiscovering ? "Searching..." : "Discover Contacts"}
+              </Button>
             </div>
           ) : (
             <div>
@@ -161,12 +195,20 @@ export function ContactsDialog({
         </div>
 
         {!showForm && (
-          <div className="flex-shrink-0 pt-4 border-t border-[var(--border)] mt-4">
+          <div className="flex-shrink-0 pt-4 border-t border-[var(--border)] mt-4 flex gap-2">
+            <Button
+              onClick={handleDiscover}
+              disabled={isDiscovering}
+              className="flex-1 h-9 gap-2 bg-[var(--accent)] text-white hover:opacity-80 transition-opacity border-0 rounded-[8px] text-[13px] font-medium"
+            >
+              {isDiscovering ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+              {isDiscovering ? "Searching..." : "Auto-Discover"}
+            </Button>
             <Button
               onClick={() => setShowForm(true)}
-              className="w-full h-9 gap-2 bg-[var(--bg-overlay)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--bg-overlay)]/80 border border-[var(--border)] rounded-[8px] text-[13px] font-medium"
+              className="flex-1 h-9 gap-2 bg-[var(--bg-overlay)] text-[var(--text-2)] hover:text-[var(--text-1)] hover:bg-[var(--bg-overlay)]/80 border border-[var(--border)] rounded-[8px] text-[13px] font-medium"
             >
-              <Plus className="h-3.5 w-3.5" /> Add Contact
+              <Plus className="h-3.5 w-3.5" /> Add Manually
             </Button>
           </div>
         )}
