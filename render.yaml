@@ -19,7 +19,7 @@ services:
         sync: false
       - key: REDIS_URL
         sync: false
-      - key: GEMINI_API_KEY
+      - key: ANTHROPIC_API_KEY
         sync: false
       - key: APIFY_API_TOKEN
         sync: false

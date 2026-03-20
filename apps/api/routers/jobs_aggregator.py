@@ -21,6 +21,7 @@ Sorting:
 """
 
 import asyncio
+import os
 import re
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
@@ -97,8 +98,9 @@ async def aggregate_jobs(
         "internshala":("/api/jobs/internshala", {"keywords": keywords, "location": location}),
     }
 
-    # Internal FastAPI base URL (self-call)
-    BASE = "http://127.0.0.1:8000"
+    # Internal FastAPI base URL (self-call) — Render uses dynamic $PORT
+    port = os.environ.get("PORT", "8000")
+    BASE = f"http://127.0.0.1:{port}"
 
     async with httpx.AsyncClient(base_url=BASE, follow_redirects=True) as client:
         tasks = []
