@@ -33,20 +33,20 @@ const profileSchema = z.object({
   last_name: z.string().min(1, "Last name is required"),
   location_city: z.string().optional(),
   location_state: z.string().optional(),
-  location_country: z.string().default("India"),
+  location_country: z.string().optional(),
   phone: z.string().optional(),
   linkedin_url: z.string().url().optional().or(z.literal("")),
   github_url: z.string().url().optional().or(z.literal("")),
   portfolio_url: z.string().url().optional().or(z.literal("")),
-  skills: z.array(z.string()).default([]),
-  experience: z.array(z.any()).default([]),
-  education: z.array(z.any()).default([]),
-  projects: z.array(z.any()).default([]),
-  preferred_roles: z.array(z.string()).default([]),
-  job_type: z.enum(["job", "internship", "both"]).default("job"),
-  remote_preference: z.enum(["remote", "onsite", "hybrid", "any"]).default("any"),
+  skills: z.any().optional(),
+  experience: z.array(z.any()).optional(),
+  education: z.array(z.any()).optional(),
+  projects: z.array(z.any()).optional(),
+  preferred_roles: z.any().optional(),
+  job_type: z.string().optional(),
+  remote_preference: z.string().optional(),
   salary_expectation_min: z.coerce.number().optional(),
-  platforms_enabled: z.array(z.string()).default(["linkedin", "naukri", "indeed"]),
+  platforms_enabled: z.array(z.string()).optional(),
   uploaded_resume_url: z.string().optional()
 })
 
@@ -59,7 +59,7 @@ export default function OnboardingForm({ initialData, userId }: { initialData: a
   const [isSaving, setIsSaving] = useState(false)
   
   const form = useForm<ProfileValues>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema) as any,
     defaultValues: initialData || {
       first_name: "",
       last_name: "",
