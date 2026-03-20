@@ -25,10 +25,17 @@ from pydantic import BaseModel
 from typing import Optional
 import httpx
 from bs4 import BeautifulSoup
-from anthropic import AsyncAnthropic
+import os
+import google.generativeai as genai
 
 router = APIRouter()
-client = AsyncAnthropic()
+
+# Configure Gemini
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    generation_config={"response_mime_type": "application/json"}
+)
 
 # ── Request / Response models ────────────────────────────────────────────────
 
@@ -204,24 +211,13 @@ async def scrape_linkedin(body: LinkedInScrapeRequest):
 
     # ── 3. AI extraction ────────────────────────────────────────────────────
     try:
-        ai_resp = await client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=4096,
-            temperature=0.0,
-            system="You are an extraction API that only outputs valid JSON.",
-            messages=[
-                {
-                    "role": "user",
-                    "content": EXTRACTION_PROMPT.format(url=url, text=profile_text[:12000]),
-                }
-            ],
+        prompt_text = EXTRACTION_PROMPT.format(url=url, text=profile_text[:12000])
+        ai_resp = await model.generate_content_async(
+            prompt_text,
+            generation_config={"temperature": 0.0},
         )
 
-        content = ai_resp.content[0].text.strip()
-        if content.startswith("```"):
-            content = re.sub(r"^```\w*\n?", "", content)
-            content = re.sub(r"\n?```$", "", content)
-
+        content = ai_resp.text.strip()
         parsed = json.loads(content)
         return LinkedInScrapeResponse(status="success", data=parsed)
 

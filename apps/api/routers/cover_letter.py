@@ -14,10 +14,17 @@ import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from anthropic import AsyncAnthropic
+import os
+import google.generativeai as genai
 
 router = APIRouter()
-client = AsyncAnthropic()
+
+# Configure Gemini
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    generation_config={"response_mime_type": "application/json"}
+)
 
 # ── Models ───────────────────────────────────────────────────────────────────
 
@@ -104,34 +111,24 @@ async def generate_cover_letter(body: CoverLetterRequest):
     hiring_manager = body.job.hiring_manager or "Hiring Manager"
 
     try:
-        ai_resp = await client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=2048,
-            temperature=0.7,
-            system="You are a professional cover letter writer. Return only valid JSON.",
-            messages=[
-                {
-                    "role": "user",
-                    "content": COVER_LETTER_PROMPT.format(
-                        profile=json.dumps(profile_dict, indent=2),
-                        title=body.job.title,
-                        company=body.job.company,
-                        hiring_manager=hiring_manager,
-                        description=body.job.description,
-                        tone=body.tone,
-                        include_hook=str(body.include_hook),
-                        word_count=body.word_count,
-                        full_name=body.profile.full_name,
-                    ),
-                }
-            ],
+        prompt_text = COVER_LETTER_PROMPT.format(
+            profile=json.dumps(profile_dict, indent=2),
+            title=body.job.title,
+            company=body.job.company,
+            hiring_manager=hiring_manager,
+            description=body.job.description,
+            tone=body.tone,
+            include_hook=str(body.include_hook),
+            word_count=body.word_count,
+            full_name=body.profile.full_name,
         )
 
-        content = ai_resp.content[0].text.strip()
-        if content.startswith("```"):
-            content = re.sub(r"^```\w*\n?", "", content)
-            content = re.sub(r"\n?```$", "", content)
+        ai_resp = await model.generate_content_async(
+            prompt_text,
+            generation_config={"temperature": 0.7},
+        )
 
+        content = ai_resp.text.strip()
         data = json.loads(content)
 
     except json.JSONDecodeError:

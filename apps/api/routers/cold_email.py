@@ -17,10 +17,17 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, List
-from anthropic import AsyncAnthropic
+import os
+import google.generativeai as genai
 
 router = APIRouter()
-client = AsyncAnthropic()
+
+# Configure Gemini
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    generation_config={"response_mime_type": "application/json"}
+)
 
 # ── Models ───────────────────────────────────────────────────────────
 
@@ -225,15 +232,12 @@ async def _generate_single_email(
     )
 
     try:
-        ai_resp = await client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=1024,
-            temperature=0.8,   # Slightly creative for email writing
-            system="You are a cold email expert. Return only valid JSON.",
-            messages=[{"role": "user", "content": prompt}],
+        ai_resp = await model.generate_content_async(
+            prompt,
+            generation_config={"temperature": 0.8},
         )
 
-        content = _clean_ai_json(ai_resp.content[0].text)
+        content = _clean_ai_json(ai_resp.text)
         data = json.loads(content)
 
     except json.JSONDecodeError:
@@ -372,15 +376,12 @@ async def generate_followup_email(body: FollowUpRequest):
     )
 
     try:
-        ai_resp = await client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=512,
-            temperature=0.7,
-            system="You are a follow-up email expert. Return only valid JSON.",
-            messages=[{"role": "user", "content": prompt}],
+        ai_resp = await model.generate_content_async(
+            prompt,
+            generation_config={"temperature": 0.7},
         )
 
-        content = _clean_ai_json(ai_resp.content[0].text)
+        content = _clean_ai_json(ai_resp.text)
         data = json.loads(content)
 
     except json.JSONDecodeError:

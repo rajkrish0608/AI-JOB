@@ -19,10 +19,17 @@ import re
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from anthropic import AsyncAnthropic
+import os
+import google.generativeai as genai
 
 router = APIRouter()
-client = AsyncAnthropic()
+
+# Configure Gemini
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel(
+    model_name="gemini-1.5-flash",
+    generation_config={"response_mime_type": "application/json"}
+)
 
 # ── Models ───────────────────────────────────────────────────────────────────
 
@@ -142,28 +149,15 @@ async def score_jobs(body: FitScoreRequest):
     ]
 
     try:
-        ai_resp = await client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=4096,
-            temperature=0.0,
-            system="You are a career matching API. Return only valid JSON arrays.",
-            messages=[
-                {
-                    "role": "user",
-                    "content": SCORING_PROMPT.format(
-                        profile=json.dumps(profile_summary, indent=2),
-                        jobs=json.dumps(jobs_for_prompt, indent=2),
-                    ),
-                }
-            ],
+        ai_resp = await model.generate_content_async(
+            SCORING_PROMPT.format(
+                profile=json.dumps(profile_summary, indent=2),
+                jobs=json.dumps(jobs_for_prompt, indent=2),
+            ),
+            generation_config={"temperature": 0.0},
         )
 
-        content = ai_resp.content[0].text.strip()
-        # Strip markdown fences if present
-        if content.startswith("```"):
-            content = re.sub(r"^```\w*\n?", "", content)
-            content = re.sub(r"\n?```$", "", content)
-
+        content = ai_resp.text.strip()
         scores = json.loads(content)
 
     except json.JSONDecodeError:
