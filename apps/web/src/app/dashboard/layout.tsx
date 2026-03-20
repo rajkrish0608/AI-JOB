@@ -1,7 +1,7 @@
 import { ModeToggle } from "@/components/mode-toggle"
 import { Button } from "@/components/ui/button"
 import { logout } from "@/app/login/actions"
-import { Home, Briefcase, FileText, Send, Building, LayoutDashboard, LogOut } from "lucide-react"
+import { Home, Briefcase, FileText, Send, Building, LayoutDashboard, LogOut, Target } from "lucide-react"
 import Link from "next/link"
 
 export default function DashboardLayout({
@@ -24,7 +24,7 @@ export default function DashboardLayout({
               className="flex items-center gap-3 rounded-lg bg-muted px-3 py-2 text-primary transition-all hover:text-primary"
             >
               <LayoutDashboard className="h-4 w-4" />
-              Dashboard
+              Overview
             </Link>
             <Link
               href="/dashboard/profile"
@@ -40,6 +40,14 @@ export default function DashboardLayout({
               <Briefcase className="h-4 w-4" />
               Job Search
             </Link>
+            <Link
+              href="/dashboard/tracker"
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+            >
+              <Target className="h-4 w-4" />
+              Job Tracker
+            </Link>
+
             <Link
               href="/dashboard/resumes"
               className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
