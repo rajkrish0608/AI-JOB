@@ -11,16 +11,16 @@ services:
       - key: API_ENV
         value: production
       # User must fill these in Render Dashboard
-      - fromContext: parameter
-        key: SUPABASE_URL
-      - fromContext: parameter
-        key: SUPABASE_SERVICE_ROLE_KEY
-      - fromContext: parameter
-        key: REDIS_URL
-      - fromContext: parameter
-        key: GEMINI_API_KEY
-      - fromContext: parameter
-        key: APIFY_API_TOKEN
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: APIFY_API_TOKEN
+        sync: false
 
   # 2. Background Worker (ARQ)
   - type: worker
@@ -31,21 +31,21 @@ services:
     envVars:
       - key: PYTHONPATH
         value: apps/api
-      - fromContext: parameter
-        key: SUPABASE_URL
-      - fromContext: parameter
-        key: SUPABASE_SERVICE_ROLE_KEY
-      - fromContext: parameter
-        key: REDIS_URL
-      - fromContext: parameter
-        key: GEMINI_API_KEY
-      - fromContext: parameter
-        key: APIFY_API_TOKEN
-      - fromContext: parameter
-        key: SMTP_HOST
-      - fromContext: parameter
-        key: SMTP_PORT
-      - fromContext: parameter
-        key: SMTP_USER
-      - fromContext: parameter
-        key: SMTP_PASS
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: APIFY_API_TOKEN
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
