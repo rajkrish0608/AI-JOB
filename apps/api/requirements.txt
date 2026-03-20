@@ -69,3 +69,5 @@ websockets==15.0.1
 yarl==1.22.0
 markdown-it-py==3.0.0
 weasyprint==66.0
+arq==0.26.1
+redis==5.2.1
