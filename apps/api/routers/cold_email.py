@@ -1,7 +1,7 @@
 """
 Cold Email Generator — AI-Powered Outreach
 ============================================
-Uses Claude 3.5 Sonnet to generate personalized cold outreach emails
+Uses Google Gemini to generate personalized cold outreach emails
 targeting HR contacts, recruiters, and hiring managers discovered via
 the HR Email Finder (P6.1).
 
@@ -204,7 +204,7 @@ async def _generate_single_email(
     email_type: str,
     max_words: int,
 ) -> GenerateEmailResponse:
-    """Core function: generate one personalized cold email via Claude."""
+    """Core function: generate one personalized cold email via Gemini AI."""
 
     sender_dict = sender.model_dump()
 
@@ -270,7 +270,7 @@ async def _generate_single_email(
 @router.post("/outreach/generate-email", response_model=GenerateEmailResponse)
 async def generate_cold_email(body: GenerateEmailRequest):
     """
-    Generate a single personalized cold outreach email using Claude AI.
+    Generate a single personalized cold outreach email using Gemini AI.
     
     Supports three email types:
       - cold_intro: Direct introduction to a recruiter/hiring manager

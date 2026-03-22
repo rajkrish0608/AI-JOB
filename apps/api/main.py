@@ -41,7 +41,7 @@ from routers import (
     jobs_linkedin, jobs_naukri, jobs_indeed,
     jobs_glassdoor, jobs_internshala,
     jobs_aggregator, jobs_scorer,
-    resume_builder, resume_renderer, # resume_pdf, 
+    resume_builder, resume_renderer, resume_pdf,
     cover_letter,
     apply_linkedin, apply_naukri, apply_indeed, apply_internshala,
     apply_queue, apply_scheduler,
@@ -77,7 +77,7 @@ app.include_router(jobs_glassdoor.router, prefix="/api", tags=["jobs"])
 app.include_router(jobs_internshala.router, prefix="/api", tags=["jobs"])
 app.include_router(resume_builder.router, prefix="/api", tags=["resume"])
 app.include_router(resume_renderer.router, prefix="/api", tags=["resume"])
-# app.include_router(resume_pdf.router, prefix="/api", tags=["resume"])
+app.include_router(resume_pdf.router, prefix="/api", tags=["resume"])
 app.include_router(cover_letter.router, prefix="/api", tags=["resume"])
 app.include_router(apply_linkedin.router, prefix="/api", tags=["apply"])
 app.include_router(apply_indeed.router, prefix="/api", tags=["apply"])

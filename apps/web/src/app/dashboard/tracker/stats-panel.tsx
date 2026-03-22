@@ -79,8 +79,8 @@ export default function StatsPanel({ applications }: { applications: any[] }) {
           </div>
         </div>
 
-        <div className="flex-1 min-h-[140px] w-full mt-2">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="flex-1 min-h-[160px] w-full mt-2">
+          <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chartData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" opacity={0.5} />
               <XAxis 
