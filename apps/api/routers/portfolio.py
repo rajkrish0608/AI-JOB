@@ -20,6 +20,7 @@ import httpx
 from bs4 import BeautifulSoup
 import os
 import google.generativeai as genai
+from gemini_retry import generate_with_retry
 
 router = APIRouter()
 
@@ -164,7 +165,8 @@ async def scrape_portfolio(body: PortfolioScrapeRequest):
     # 3. AI Parsing
     try:
         prompt_text = EXTRACTION_PROMPT.format(url=url, text=text[:15000])
-        ai_resp = await model.generate_content_async(
+        ai_resp = await generate_with_retry(
+            model,
             prompt_text,
             generation_config={"temperature": 0.0},
         )

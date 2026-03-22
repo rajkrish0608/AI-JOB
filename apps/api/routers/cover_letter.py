@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from typing import Optional
 import os
 import google.generativeai as genai
+from gemini_retry import generate_with_retry
 
 router = APIRouter()
 
@@ -123,9 +124,10 @@ async def generate_cover_letter(body: CoverLetterRequest):
             full_name=body.profile.full_name,
         )
 
-        ai_resp = await model.generate_content_async(
+        ai_resp = await generate_with_retry(
+            model,
             prompt_text,
-            generation_config={"temperature": 0.7},
+            generation_config={"temperature": 0.4},
         )
 
         content = ai_resp.text.strip()

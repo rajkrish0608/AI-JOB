@@ -19,6 +19,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 import os
 import google.generativeai as genai
+from gemini_retry import generate_with_retry
 
 router = APIRouter()
 
@@ -232,7 +233,8 @@ async def _generate_single_email(
     )
 
     try:
-        ai_resp = await model.generate_content_async(
+        ai_resp = await generate_with_retry(
+            model,
             prompt,
             generation_config={"temperature": 0.8},
         )
@@ -376,7 +378,8 @@ async def generate_followup_email(body: FollowUpRequest):
     )
 
     try:
-        ai_resp = await model.generate_content_async(
+        ai_resp = await generate_with_retry(
+            model,
             prompt,
             generation_config={"temperature": 0.7},
         )

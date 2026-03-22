@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from typing import Optional
 import os
 import google.generativeai as genai
+from gemini_retry import generate_with_retry
 
 router = APIRouter()
 
@@ -168,7 +169,8 @@ IMPORTANT: Tailor the resume specifically for this role. Mirror their language a
             tone=body.tone,
         )
 
-        ai_resp = await model.generate_content_async(
+        ai_resp = await generate_with_retry(
+            model,
             prompt_text,
             generation_config={"temperature": 0.3},
         )

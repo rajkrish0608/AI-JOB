@@ -21,6 +21,7 @@ from pydantic import BaseModel
 from typing import Optional
 import os
 import google.generativeai as genai
+from gemini_retry import generate_with_retry
 
 router = APIRouter()
 
@@ -149,7 +150,8 @@ async def score_jobs(body: FitScoreRequest):
     ]
 
     try:
-        ai_resp = await model.generate_content_async(
+        ai_resp = await generate_with_retry(
+            model,
             SCORING_PROMPT.format(
                 profile=json.dumps(profile_summary, indent=2),
                 jobs=json.dumps(jobs_for_prompt, indent=2),
