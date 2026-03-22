@@ -1,4 +1,5 @@
 "use client"
+import { apiFetch } from "@/utils/api"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -61,10 +62,8 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
         tone
       }
 
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
-      const buildRes = await fetch(`${API_BASE}/api/resume/generate`, {
+      const buildRes = await apiFetch("/api/resume/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
 
@@ -76,9 +75,8 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
       toast.success(`Resume optimized! ATS Match Score: ${buildData.ats_score}/100`)
 
       // 2. Fetch the HTML preview
-      const renderRes = await fetch(`${API_BASE}/api/resume/render`, {
+      const renderRes = await apiFetch("/api/resume/render", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           resume_data: generatedData,
           template_name: template
@@ -103,10 +101,8 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
     const toastId = toast.loading("Generating PDF...")
 
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"
-      const pdfRes = await fetch(`${API_BASE}/api/resume/pdf`, {
+      const pdfRes = await apiFetch("/api/resume/pdf", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           resume_data: generatedResume,
           template_name: template

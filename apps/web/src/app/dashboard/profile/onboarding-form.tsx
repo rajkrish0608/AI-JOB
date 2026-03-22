@@ -1,4 +1,5 @@
 "use client"
+import { apiFetch } from "@/utils/api"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -94,8 +95,7 @@ export default function OnboardingForm({ initialData, userId }: { initialData: a
     formData.append("file", file)
 
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-      const res = await fetch(`${API_BASE}/api/parse-resume`, {
+      const res = await apiFetch("/api/parse-resume", {
         method: "POST",
         body: formData
       })

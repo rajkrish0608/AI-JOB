@@ -27,6 +27,8 @@ services:
         sync: false
       - key: APOLLO_API_KEY
         sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

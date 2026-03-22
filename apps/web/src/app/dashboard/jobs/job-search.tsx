@@ -1,4 +1,5 @@
 "use client"
+import { apiFetch } from "@/utils/api"
 
 import { useState } from "react"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -65,11 +66,10 @@ export function JobSearch({ userProfile }: { userProfile: any }) {
 
     try {
       // 1. Fetch Aggregated Jobs
-      const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
       const sourcesParam = selectedSources.join(",")
-      const aggUrl = `${API_BASE}/api/jobs/aggregate?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}&sources=${sourcesParam}&max_per_source=10`
+      const aggUrl = `/api/jobs/aggregate?keywords=${encodeURIComponent(keywords)}&location=${encodeURIComponent(location)}&sources=${sourcesParam}&max_per_source=10`
       
-      const aggRes = await fetch(aggUrl)
+      const aggRes = await apiFetch(aggUrl)
       if (!aggRes.ok) throw new Error("Failed to search jobs")
       const aggData = await aggRes.json()
 
@@ -103,9 +103,8 @@ export function JobSearch({ userProfile }: { userProfile: any }) {
         jobs: aggData.jobs.slice(0, 15) // Only score top 15 to save tokens/time for now
       }
 
-      const scoreRes = await fetch(`${API_BASE}/api/jobs/score`, {
+      const scoreRes = await apiFetch("/api/jobs/score", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(scoreReqBody)
       })
 

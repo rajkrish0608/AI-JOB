@@ -1,5 +1,6 @@
 "use client"
 
+import { apiFetch } from "@/utils/api"
 import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -65,7 +66,6 @@ type GmailTokens = {
 const REDIRECT_URI = typeof window !== 'undefined' 
   ? `${window.location.origin}/dashboard/outreach` 
   : "http://localhost:3000/dashboard/outreach";
-const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000"}/api`;
 
 // We wrap the main logic in a Suspense-friendly component
 function OutreachContent() {
@@ -127,10 +127,7 @@ function OutreachContent() {
   const handleOAuthCallback = async (code: string) => {
     setIsAuthenticating(true)
     try {
-      const url = new URL(`${API_BASE}/outreach/gmail/callback`)
-      url.searchParams.append("code", code)
-      url.searchParams.append("redirect_uri", REDIRECT_URI)
-      const res = await fetch(url.toString())
+      const res = await apiFetch(`/api/outreach/gmail/callback?code=${encodeURIComponent(code)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`)
       if (!res.ok) throw new Error("Auth failed")
       const data = await res.json()
       
@@ -151,10 +148,7 @@ function OutreachContent() {
 
   const handleConnectGmail = async () => {
     try {
-      const url = new URL(`${API_BASE}/outreach/gmail/auth-url`)
-      url.searchParams.append("redirect_uri", REDIRECT_URI)
-      const res = await fetch(url.toString())
-      if (!res.ok) throw new Error("Could not get auth URL")
+      const res = await apiFetch(`/api/outreach/gmail/auth-url?redirect_uri=${encodeURIComponent(REDIRECT_URI)}`)
       const data = await res.json()
       window.location.href = data.auth_url
     } catch (err: any) {
@@ -178,9 +172,8 @@ function OutreachContent() {
     setSearchResult(null)
     setSelectedEmails(new Set())
     try {
-      const res = await fetch(`${API_BASE}/outreach/find-contacts`, {
+      const res = await apiFetch("/api/outreach/find-contacts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           company_name: company.trim(),
           company_domain: domain.trim() || undefined,
@@ -242,9 +235,8 @@ function OutreachContent() {
         max_words: 150
       }
       
-      const res = await fetch(`${API_BASE}/outreach/generate-email/batch`, {
+      const res = await apiFetch("/api/outreach/generate-email/batch", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
       if (!res.ok) throw new Error("Failed to generate emails")
@@ -286,9 +278,8 @@ function OutreachContent() {
         delay_seconds: 2.0
       }
 
-      const res = await fetch(`${API_BASE}/outreach/gmail/send-batch`, {
+      const res = await apiFetch("/api/outreach/gmail/send-batch", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
 
