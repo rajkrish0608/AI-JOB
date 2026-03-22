@@ -67,6 +67,15 @@ const REDIRECT_URI = typeof window !== 'undefined'
   ? `${window.location.origin}/dashboard/outreach` 
   : "http://localhost:3000/dashboard/outreach";
 
+/** Lightweight HTML sanitizer — strips scripts, event handlers, and dangerous tags */
+function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
+    .replace(/javascript:/gi, '')
+}
+
 // We wrap the main logic in a Suspense-friendly component
 function OutreachContent() {
   const searchParams = useSearchParams()
@@ -560,7 +569,7 @@ function OutreachContent() {
                       </div>
                       <div 
                         className="px-4 py-4 text-sm prose dark:prose-invert max-w-none"
-                        dangerouslySetInnerHTML={{__html: emailResult.email.body_html}}
+                        dangerouslySetInnerHTML={{__html: sanitizeHtml(emailResult.email.body_html)}}
                       />
                       {emailResult.email.personalization_notes?.length > 0 && (
                         <div className="bg-[var(--bg-overlay)] px-4 py-3 border-t border-[var(--border)] text-xs text-[var(--text-3)]">
