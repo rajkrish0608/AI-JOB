@@ -49,9 +49,16 @@ from routers import (
     dream_companies,
 )
 
+# CORS configuration — restrict to known origins
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "").split(",") if os.environ.get("ALLOWED_ORIGINS") else [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://ai-job-amber.vercel.app",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict this in production
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
