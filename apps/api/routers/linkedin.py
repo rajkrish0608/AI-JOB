@@ -27,7 +27,7 @@ import httpx
 from bs4 import BeautifulSoup
 import os
 import google.generativeai as genai
-from gemini_retry import generate_with_retry
+from gemini_retry import generate_with_retry, GeminiRateLimitError
 
 router = APIRouter()
 
@@ -225,5 +225,7 @@ async def scrape_linkedin(body: LinkedInScrapeRequest):
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="AI returned invalid JSON; please try again.")
+    except GeminiRateLimitError as rle:
+        raise HTTPException(status_code=503, detail=rle.to_dict())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"AI extraction failed: {str(exc)}")

@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from typing import Optional
 import os
 import google.generativeai as genai
-from gemini_retry import generate_with_retry
+from gemini_retry import generate_with_retry, GeminiRateLimitError
 
 router = APIRouter()
 
@@ -180,6 +180,8 @@ IMPORTANT: Tailor the resume specifically for this role. Mirror their language a
 
     except json.JSONDecodeError as jde:
         raise HTTPException(status_code=500, detail=f"AI returned invalid JSON: {str(jde)}")
+    except GeminiRateLimitError as rle:
+        raise HTTPException(status_code=503, detail=rle.to_dict())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Resume generation failed: {str(exc)}")
 

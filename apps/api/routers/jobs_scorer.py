@@ -1,7 +1,7 @@
 """
 AI Fit Scorer
 =============
-Uses Claude 3.5 Sonnet to score how well a batch of job listings
+Uses Google Gemini to score how well a batch of job listings
 match a user's profile (skills, experience, preferences).
 
 The scorer receives:
@@ -21,7 +21,7 @@ from pydantic import BaseModel
 from typing import Optional
 import os
 import google.generativeai as genai
-from gemini_retry import generate_with_retry
+from gemini_retry import generate_with_retry, GeminiRateLimitError
 
 router = APIRouter()
 
@@ -107,7 +107,7 @@ Return ONLY a valid JSON array of objects. No markdown, no explanation.
 @router.post("/jobs/score", response_model=FitScoreResponse)
 async def score_jobs(body: FitScoreRequest):
     """
-    Score a batch of jobs against a user profile using Claude AI.
+    Score a batch of jobs against a user profile using Gemini AI.
     Accepts up to 20 jobs per request to stay within token limits.
     """
 
@@ -164,6 +164,8 @@ async def score_jobs(body: FitScoreRequest):
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="AI returned invalid JSON. Please retry.")
+    except GeminiRateLimitError as rle:
+        raise HTTPException(status_code=503, detail=rle.to_dict())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"AI scoring failed: {str(exc)}")
 

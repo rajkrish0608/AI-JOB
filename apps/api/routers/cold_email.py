@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 import os
 import google.generativeai as genai
-from gemini_retry import generate_with_retry
+from gemini_retry import generate_with_retry, GeminiRateLimitError
 
 router = APIRouter()
 
@@ -244,6 +244,8 @@ async def _generate_single_email(
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="AI returned invalid JSON. Please retry.")
+    except GeminiRateLimitError as rle:
+        raise HTTPException(status_code=503, detail=rle.to_dict())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Email generation failed: {str(exc)}")
 
@@ -389,6 +391,8 @@ async def generate_followup_email(body: FollowUpRequest):
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=500, detail="AI returned invalid JSON. Please retry.")
+    except GeminiRateLimitError as rle:
+        raise HTTPException(status_code=503, detail=rle.to_dict())
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Follow-up generation failed: {str(exc)}")
 
