@@ -55,7 +55,7 @@ async def get_current_user(
             payload = jwt.decode(
                 token,
                 SUPABASE_JWT_SECRET,
-                algorithms=["HS256"],
+                algorithms=["HS256", "RS256", "ES256"],
                 audience="authenticated",
             )
         return payload
@@ -89,7 +89,7 @@ async def get_optional_user(
         return jwt.decode(
             credentials.credentials,
             SUPABASE_JWT_SECRET,
-            algorithms=["HS256"],
+            algorithms=["HS256", "RS256", "ES256"],
             audience="authenticated",
         )
     except jwt.InvalidTokenError:
