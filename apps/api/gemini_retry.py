@@ -15,6 +15,7 @@ import logging
 import random
 import time
 from dataclasses import dataclass
+from typing import Optional
 
 logger = logging.getLogger("gemini_retry")
 
@@ -53,7 +54,7 @@ class GeminiRateLimitError(Exception):
 async def generate_with_retry(
     model,
     prompt: str,
-    generation_config: dict | None = None,
+    generation_config: Optional[dict] = None,
     max_retries: int = MAX_RETRIES,
     base_delay: float = BASE_DELAY_SECONDS,
 ):
@@ -81,7 +82,7 @@ async def generate_with_retry(
         Exception: Original exception for non-rate-limit errors
     """
     total_wait = 0.0
-    last_exception: Exception | None = None
+    last_exception: Optional[Exception] = None
 
     async with _semaphore:
         logger.debug(

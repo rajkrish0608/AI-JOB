@@ -6,6 +6,9 @@ import os
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), ".env"))
 
 from fastapi import FastAPI
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.errors import RateLimitExceeded
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic_settings import BaseSettings
 from arq import create_pool
@@ -34,6 +37,12 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+# ── Rate Limiting ──
+from rate_limiter import limiter, rate_limit_exceeded_handler
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
 # CORS configuration
 from routers import (

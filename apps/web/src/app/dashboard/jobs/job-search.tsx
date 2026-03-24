@@ -222,7 +222,7 @@ export function JobSearch({ userProfile }: { userProfile: any }) {
       {(isSearching || isScoring) && (
         <div className="py-12 flex flex-col items-center justify-center space-y-4 text-[var(--text-3)]">
           <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="text-[13px] text-[var(--text-2)]">{isScoring ? "Claude is analyzing your fit for these roles..." : "Extracting listings from job portals..."}</p>
+          <p className="text-[13px] text-[var(--text-2)]">{isScoring ? "Gemini is analyzing your fit for these roles..." : "Extracting listings from job portals..."}</p>
         </div>
       )}
 

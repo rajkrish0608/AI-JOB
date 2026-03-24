@@ -23,7 +23,8 @@ Sorting:
 import asyncio
 import os
 import re
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -81,6 +82,7 @@ async def aggregate_jobs(
         description="Comma-separated list of sources to include",
     ),
     max_per_source: int = Query(25, ge=1, le=50, description="Max jobs per source"),
+    user: dict = Depends(get_current_user),
 ):
     """
     Fan-out job search across all 5 platforms simultaneously.
@@ -139,10 +141,25 @@ async def aggregate_jobs(
                 count += 1
         source_counts[source_name] = count
 
+    # ── Location filter ────────────────────────────────────────────────────
+    # Some scrapers return jobs outside the requested location.
+    # Apply a backend-level filter to ensure results match.
+    if location and location.strip():
+        loc_lower = location.strip().lower()
+        filtered = []
+        for job in merged:
+            job_loc = job.get("location", "").lower()
+            # Keep if: location matches, or job location is empty/remote
+            if (loc_lower in job_loc
+                or job_loc in loc_lower
+                or not job_loc
+                or "remote" in job_loc):
+                filtered.append(job)
+        merged = filtered
+
     # ── Sort: newest first; undated jobs go last ──────────────────────────
-    def _sort_key(job: dict) -> tuple[int, str]:
+    def _sort_key(job: dict) -> tuple:
         posted = job.get("posted")
-        # Earlier in alphabet → higher priority if date string present
         return (0 if posted else 1, posted or "")
 
     merged.sort(key=_sort_key)

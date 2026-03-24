@@ -88,7 +88,7 @@ export function CoverLetterGenerator({ userProfile }: { userProfile: any }) {
       <Card className="lg:col-span-2 shadow-sm">
         <CardHeader>
           <CardTitle className="text-xl">Cover Letter Settings</CardTitle>
-          <CardDescription>Claude will write a tailored, authentic cover letter.</CardDescription>
+          <CardDescription>Gemini will write a tailored, authentic cover letter.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleGenerate} className="space-y-4">
@@ -159,7 +159,7 @@ export function CoverLetterGenerator({ userProfile }: { userProfile: any }) {
 
             <Button type="submit" className="w-full gap-2" disabled={isGenerating}>
               {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-              {isGenerating ? "Claude is writing..." : "Generate Cover Letter"}
+              {isGenerating ? "Gemini is writing..." : "Generate Cover Letter"}
             </Button>
           </form>
         </CardContent>
@@ -187,7 +187,7 @@ export function CoverLetterGenerator({ userProfile }: { userProfile: any }) {
           {isGenerating ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-4 text-muted-foreground animate-pulse">
               <Mail className="h-10 w-10 opacity-30 text-primary" />
-              <p>Claude is crafting a compelling opening line...<br/>Takes about 10 seconds.</p>
+              <p>Gemini is crafting a compelling opening line...<br/>Takes about 10 seconds.</p>
             </div>
           ) : result ? (
             <>

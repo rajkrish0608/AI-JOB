@@ -136,7 +136,7 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
       <Card className="lg:col-span-2 shadow-sm order-2 md:order-1">
         <CardHeader>
           <CardTitle className="text-xl">Tailor Settings</CardTitle>
-          <CardDescription>Paste a job description to let Claude optimize your resume for it.</CardDescription>
+          <CardDescription>Paste a job description to let Gemini optimize your resume for it.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleGenerate} className="space-y-5">
@@ -246,7 +246,7 @@ export function ResumeManager({ userProfile }: { userProfile: any }) {
           {isGenerating ? (
             <div className="flex flex-col items-center gap-4 text-muted-foreground p-10 text-center animate-pulse">
               <Wand2 className="h-10 w-10 text-primary opacity-50" />
-              <p>Claude is writing your tailored achievements... <br/>This takes about 10-15 seconds.</p>
+              <p>Gemini is writing your tailored achievements... <br/>This takes about 10-15 seconds.</p>
             </div>
           ) : previewHtml ? (
             <div className="w-full flex justify-center py-6 bg-slate-100 dark:bg-slate-900 overflow-auto h-full px-4">

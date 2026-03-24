@@ -1,7 +1,7 @@
 """
 ATS Resume Builder Service
 ===========================
-Uses Claude 3.5 Sonnet to generate an ATS-optimized, tailored resume
+Uses Gemini to generate an ATS-optimized, tailored resume
 given a user profile and (optionally) a target job listing.
 
 Returns structured JSON that can be rendered into multiple formats
@@ -13,7 +13,10 @@ Endpoint:
 
 import json
 import re
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
+from auth import get_current_user
+from rate_limiter import limiter, AI_LIMIT
+from input_sanitizer import sanitize_text
 from pydantic import BaseModel
 from typing import Optional
 import os
@@ -139,7 +142,8 @@ Return ONLY valid JSON. No markdown fences, no explanation text.
 # ── Endpoint ─────────────────────────────────────────────────────────────────
 
 @router.post("/resume/generate", response_model=ResumeGenerateResponse)
-async def generate_resume(body: ResumeGenerateRequest):
+@limiter.limit(AI_LIMIT)
+async def generate_resume(request: Request, body: ResumeGenerateRequest, user: dict = Depends(get_current_user)):
     """
     Generate an ATS-optimized resume from a user profile.
     Optionally tailored to a specific job listing.
@@ -150,12 +154,17 @@ async def generate_resume(body: ResumeGenerateRequest):
     # Build job context
     job_context = ""
     if body.target_job:
+        safe_title = sanitize_text(body.target_job.title, max_length=200, field_name="job_title")
+        safe_company = sanitize_text(body.target_job.company, max_length=200, field_name="company")
+        safe_desc = sanitize_text(body.target_job.description or 'Not provided', max_length=5000, field_name="job_description")
+        safe_req = ', '.join(sanitize_text(s, max_length=100, field_name="required_skill") for s in body.target_job.required_skills) if body.target_job.required_skills else 'Not specified'
+        safe_pref = ', '.join(sanitize_text(s, max_length=100, field_name="preferred_skill") for s in body.target_job.preferred_skills) if body.target_job.preferred_skills else 'Not specified'
         job_context = f"""TARGET JOB TO TAILOR FOR:
-Title: {body.target_job.title}
-Company: {body.target_job.company}
-Description: {body.target_job.description or 'Not provided'}
-Required Skills: {', '.join(body.target_job.required_skills) if body.target_job.required_skills else 'Not specified'}
-Preferred Skills: {', '.join(body.target_job.preferred_skills) if body.target_job.preferred_skills else 'Not specified'}
+Title: {safe_title}
+Company: {safe_company}
+Description: {safe_desc}
+Required Skills: {safe_req}
+Preferred Skills: {safe_pref}
 
 IMPORTANT: Tailor the resume specifically for this role. Mirror their language and prioritize relevant experience."""
     else:

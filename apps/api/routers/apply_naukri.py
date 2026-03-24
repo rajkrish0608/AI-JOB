@@ -13,15 +13,20 @@ Endpoint:
 """
 
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 from pydantic import BaseModel
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
-from anthropic import AsyncAnthropic
+import google.generativeai as genai
+import os
 
 router = APIRouter()
-ai_client = AsyncAnthropic()
+
+# Initialize Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+_ai_model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ── Models ───────────────────────────────────────────────────────────
 
@@ -46,25 +51,20 @@ class NaukriApplyResponse(BaseModel):
 
 
 async def _ai_answer(question: str, options: list[str], profile: dict) -> str:
-    """Use Claude to answer a Naukri application question."""
+    """Use Gemini to answer a Naukri application question."""
     try:
-        resp = await ai_client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=200,
-            temperature=0,
-            system="You answer job application questions concisely using the candidate's profile. Return ONLY the answer.",
-            messages=[{
-                "role": "user",
-                "content": f"Question: {question}\nOptions: {json.dumps(options)}\nProfile: {json.dumps(profile)}\n\nAnswer:"
-            }]
+        prompt = f"You answer job application questions concisely using the candidate's profile. Return ONLY the answer.\n\nQuestion: {question}\nOptions: {json.dumps(options)}\nProfile: {json.dumps(profile)}\n\nAnswer:"
+        response = await _ai_model.generate_content_async(
+            prompt,
+            generation_config={"temperature": 0, "max_output_tokens": 200},
         )
-        return resp.content[0].text.strip()
+        return response.text.strip()
     except Exception:
         return ""
 
 
 @router.post("/apply/naukri", response_model=NaukriApplyResponse)
-async def apply_naukri_quick(body: NaukriApplyRequest):
+async def apply_naukri_quick(body: NaukriApplyRequest, user: dict = Depends(get_current_user)):
     """
     Automates Naukri.com job application.
     

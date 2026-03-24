@@ -16,7 +16,10 @@ It returns each job annotated with:
 
 import json
 import re
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
+from auth import get_current_user
+from rate_limiter import limiter, AI_LIMIT
+from input_sanitizer import sanitize_text
 from pydantic import BaseModel
 from typing import Optional
 import os
@@ -105,7 +108,8 @@ Return ONLY a valid JSON array of objects. No markdown, no explanation.
 # ── Endpoint ─────────────────────────────────────────────────────────────────
 
 @router.post("/jobs/score", response_model=FitScoreResponse)
-async def score_jobs(body: FitScoreRequest):
+@limiter.limit(AI_LIMIT)
+async def score_jobs(request: Request, body: FitScoreRequest, user: dict = Depends(get_current_user)):
     """
     Score a batch of jobs against a user profile using Gemini AI.
     Accepts up to 20 jobs per request to stay within token limits.
@@ -140,10 +144,10 @@ async def score_jobs(body: FitScoreRequest):
     jobs_for_prompt = [
         {
             "index": i,
-            "title": j.title,
-            "company": j.company,
-            "location": j.location,
-            "snippet": j.description_snippet or "",
+            "title": sanitize_text(j.title, max_length=200, field_name="job_title"),
+            "company": sanitize_text(j.company, max_length=200, field_name="company"),
+            "location": sanitize_text(j.location, max_length=200, field_name="location"),
+            "snippet": sanitize_text(j.description_snippet or "", max_length=2000, field_name="description"),
             "salary": j.salary or "",
         }
         for i, j in enumerate(body.jobs)

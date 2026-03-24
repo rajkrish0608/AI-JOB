@@ -17,7 +17,8 @@ Note on Anti-Bot:
 
 import re
 import json
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -68,6 +69,7 @@ async def search_indeed_jobs(
     keywords: str = Query(..., description="Job title or keywords"),
     location: str = Query("", description="City or location (e.g., 'Bangalore', 'Remote')"),
     page: int = Query(0, ge=0, description="Page number (0-indexed, usually increments of 10 results)"),
+    user: dict = Depends(get_current_user),
 ):
     """
     Search Indeed.com (India) for job listings matching criteria.

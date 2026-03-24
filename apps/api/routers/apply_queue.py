@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Any, Union, Optional
 
@@ -11,7 +12,7 @@ class EnqueueRequest(BaseModel):
     profile: dict
 
 @router.post("/apply/queue")
-async def enqueue_application(request: Request, body: EnqueueRequest):
+async def enqueue_application(request: Request, body: EnqueueRequest, user: dict = Depends(get_current_user)):
     """
     Enqueues a job application task to the Redis background worker.
     """
@@ -43,7 +44,7 @@ async def enqueue_application(request: Request, body: EnqueueRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/apply/queue/{job_id}")
-async def get_queue_status(request: Request, job_id: str):
+async def get_queue_status(request: Request, job_id: str, user: dict = Depends(get_current_user)):
     """
     Check the status of a queued application task.
     """

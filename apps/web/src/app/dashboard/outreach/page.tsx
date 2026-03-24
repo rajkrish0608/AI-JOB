@@ -2,6 +2,7 @@
 
 import { apiFetch } from "@/utils/api"
 import { useState, useEffect, Suspense } from "react"
+import DOMPurify from "dompurify"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -67,13 +68,13 @@ const REDIRECT_URI = typeof window !== 'undefined'
   ? `${window.location.origin}/dashboard/outreach` 
   : "http://localhost:3000/dashboard/outreach";
 
-/** Lightweight HTML sanitizer — strips scripts, event handlers, and dangerous tags */
+/** Sanitize AI-generated HTML using DOMPurify (DOM-based, not regex) */
 function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-    .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
-    .replace(/javascript:/gi, '')
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'a', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'div', 'blockquote', 'pre', 'code', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style'],
+    ALLOW_DATA_ATTR: false,
+  })
 }
 
 // We wrap the main logic in a Suspense-friendly component

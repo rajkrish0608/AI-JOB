@@ -11,7 +11,8 @@ Endpoints:
 
 import os
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 
@@ -185,7 +186,7 @@ async def _apollo_people_search(company_name: str, max_results: int) -> list[Con
 # ── Endpoints ────────────────────────────────────────────────────────
 
 @router.post("/outreach/find-contacts", response_model=FindContactsResponse)
-async def find_hr_contacts(body: FindContactsRequest):
+async def find_hr_contacts(body: FindContactsRequest, user: dict = Depends(get_current_user)):
     """
     Find HR / recruiter contacts for a given company using Hunter.io and Apollo.io.
     Results are deduplicated by email and sorted by confidence score.
@@ -233,7 +234,7 @@ async def find_hr_contacts(body: FindContactsRequest):
 
 
 @router.post("/outreach/verify-email", response_model=VerifyEmailResponse)
-async def verify_email(body: VerifyEmailRequest):
+async def verify_email(body: VerifyEmailRequest, user: dict = Depends(get_current_user)):
     """
     Verify if an email address is deliverable using Hunter.io's Email Verifier API.
     """

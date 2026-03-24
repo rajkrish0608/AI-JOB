@@ -6,7 +6,7 @@ Extracts structured profile data from public LinkedIn profiles.
 Strategy:
   1. Fetch the public LinkedIn page with realistic browser headers.
   2. Parse the HTML with BeautifulSoup to extract metadata and visible text.
-  3. Send the extracted text to Claude 3.5 Sonnet for structured extraction,
+  3. Send the extracted text to Gemini for structured extraction,
      identical to the resume parser output schema so the onboarding form
      can consume data from either source interchangeably.
 
@@ -20,7 +20,10 @@ In production you would add:
 
 import json
 import re
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
+from auth import get_current_user
+from rate_limiter import limiter, AI_LIMIT
+from input_sanitizer import sanitize_text
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -160,7 +163,8 @@ def _extract_text_from_html(html: str) -> str:
 # ── Endpoint ─────────────────────────────────────────────────────────────────
 
 @router.post("/scrape-linkedin", response_model=LinkedInScrapeResponse)
-async def scrape_linkedin(body: LinkedInScrapeRequest):
+@limiter.limit(AI_LIMIT)
+async def scrape_linkedin(request: Request, body: LinkedInScrapeRequest, user: dict = Depends(get_current_user)):
     """
     Scrape a public LinkedIn profile and return structured profile data.
     The response JSON is compatible with the onboarding form schema used
@@ -212,7 +216,7 @@ async def scrape_linkedin(body: LinkedInScrapeRequest):
 
     # ── 3. AI extraction ────────────────────────────────────────────────────
     try:
-        prompt_text = EXTRACTION_PROMPT.format(url=url, text=profile_text[:12000])
+        prompt_text = EXTRACTION_PROMPT.format(url=url, text=sanitize_text(profile_text[:12000], max_length=12000, field_name="linkedin_text", strip_html=False))
         ai_resp = await generate_with_retry(
             model,
             prompt_text,

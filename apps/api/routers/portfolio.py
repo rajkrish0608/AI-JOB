@@ -7,13 +7,16 @@ Strategy:
   1. Fetch the target URL using httpx (following redirects).
   2. Parse the HTML using BeautifulSoup to extract visible text,
      removing navigation, footers, scripts, and styles.
-  3. Send the extracted text to Claude 3.5 Sonnet to structure it
+  3. Send the extracted text to Gemini to structure it
      into the standard Profile onboarding JSON schema.
 """
 
 import json
 import re
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
+from auth import get_current_user
+from rate_limiter import limiter, AI_LIMIT
+from input_sanitizer import sanitize_text
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -139,10 +142,11 @@ def _extract_text(html: str) -> str:
 
 
 @router.post("/scrape-portfolio", response_model=PortfolioScrapeResponse)
-async def scrape_portfolio(body: PortfolioScrapeRequest):
+@limiter.limit(AI_LIMIT)
+async def scrape_portfolio(request: Request, body: PortfolioScrapeRequest, user: dict = Depends(get_current_user)):
     """
     Scrapes a personal portfolio site and extracts structured profile data
-    using Claude 3.5 Sonnet.
+    using Gemini.
     """
     url = _clean_url(body.portfolio_url)
 
@@ -164,7 +168,7 @@ async def scrape_portfolio(body: PortfolioScrapeRequest):
 
     # 3. AI Parsing
     try:
-        prompt_text = EXTRACTION_PROMPT.format(url=url, text=text[:15000])
+        prompt_text = EXTRACTION_PROMPT.format(url=url, text=sanitize_text(text[:15000], max_length=15000, field_name="portfolio_text", strip_html=False))
         ai_resp = await generate_with_retry(
             model,
             prompt_text,

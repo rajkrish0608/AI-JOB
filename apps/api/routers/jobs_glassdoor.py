@@ -16,7 +16,8 @@ Note:
 
 import re
 import json
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -61,6 +62,7 @@ async def search_glassdoor_jobs(
     keywords: str = Query(..., description="Job title or keywords"),
     location: str = Query("", description="City or location"),
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
+    user: dict = Depends(get_current_user),
 ):
     """
     Search Glassdoor India for job listings.

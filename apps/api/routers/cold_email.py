@@ -14,7 +14,10 @@ Endpoints:
 import json
 import re
 from datetime import datetime
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
+from auth import get_current_user
+from rate_limiter import limiter, AI_LIMIT
+from input_sanitizer import sanitize_text
 from pydantic import BaseModel
 from typing import Optional, List
 import os
@@ -212,20 +215,20 @@ async def _generate_single_email(
     # Build target role info string
     if target_role:
         target_info = (
-            f"Title: {target_role.title}\n"
+            f"Title: {sanitize_text(target_role.title, max_length=200, field_name='target_title')}\n"
             f"Job URL: {target_role.job_url or 'Not provided'}\n"
-            f"Description: {target_role.description_snippet or 'Not provided'}\n"
-            f"Why interested: {target_role.why_interested or 'Not specified'}"
+            f"Description: {sanitize_text(target_role.description_snippet or 'Not provided', max_length=2000, field_name='target_desc')}\n"
+            f"Why interested: {sanitize_text(target_role.why_interested or 'Not specified', max_length=500, field_name='why_interested')}"
         )
     else:
         target_info = "No specific role — this is a general networking/introduction email."
 
     prompt = COLD_EMAIL_PROMPT.format(
         sender_json=json.dumps(sender_dict, indent=2),
-        recipient_name=recipient.name or recipient.first_name or "Hiring Manager",
-        recipient_title=recipient.title or "Recruiter",
-        company_name=recipient.company_name,
-        department=recipient.department or "Not specified",
+        recipient_name=sanitize_text(recipient.name or recipient.first_name or "Hiring Manager", max_length=200, field_name="recipient_name"),
+        recipient_title=sanitize_text(recipient.title or "Recruiter", max_length=200, field_name="recipient_title"),
+        company_name=sanitize_text(recipient.company_name, max_length=200, field_name="company_name"),
+        department=sanitize_text(recipient.department or "Not specified", max_length=200, field_name="department"),
         target_role_info=target_info,
         email_type=email_type,
         tone=tone,
@@ -272,7 +275,8 @@ async def _generate_single_email(
 # ── Endpoints ────────────────────────────────────────────────────────
 
 @router.post("/outreach/generate-email", response_model=GenerateEmailResponse)
-async def generate_cold_email(body: GenerateEmailRequest):
+@limiter.limit(AI_LIMIT)
+async def generate_cold_email(request: Request, body: GenerateEmailRequest, user: dict = Depends(get_current_user)):
     """
     Generate a single personalized cold outreach email using Gemini AI.
     
@@ -292,7 +296,8 @@ async def generate_cold_email(body: GenerateEmailRequest):
 
 
 @router.post("/outreach/generate-email/batch", response_model=BatchEmailResponse)
-async def generate_batch_emails(body: BatchEmailRequest):
+@limiter.limit(AI_LIMIT)
+async def generate_batch_emails(request: Request, body: BatchEmailRequest, user: dict = Depends(get_current_user)):
     """
     Generate personalized cold emails for multiple contacts at once.
     Useful after finding contacts via /api/outreach/find-contacts (P6.1).
@@ -351,7 +356,8 @@ async def generate_batch_emails(body: BatchEmailRequest):
 
 
 @router.post("/outreach/generate-followup", response_model=FollowUpResponse)
-async def generate_followup_email(body: FollowUpRequest):
+@limiter.limit(AI_LIMIT)
+async def generate_followup_email(request: Request, body: FollowUpRequest, user: dict = Depends(get_current_user)):
     """
     Generate a follow-up email for a previously sent cold email.
     
@@ -367,13 +373,13 @@ async def generate_followup_email(body: FollowUpRequest):
         )
 
     prompt = FOLLOWUP_PROMPT.format(
-        sender_name=body.sender.full_name,
-        sender_title=body.sender.current_title or "Professional",
-        recipient_name=body.recipient.name or body.recipient.first_name or "there",
-        company_name=body.recipient.company_name,
-        recipient_title=body.recipient.title or "Recruiter",
-        original_subject=body.original_subject,
-        original_snippet=body.original_body_snippet[:200],
+        sender_name=sanitize_text(body.sender.full_name, max_length=200, field_name="sender_name"),
+        sender_title=sanitize_text(body.sender.current_title or "Professional", max_length=200, field_name="sender_title"),
+        recipient_name=sanitize_text(body.recipient.name or body.recipient.first_name or "there", max_length=200, field_name="recipient_name"),
+        company_name=sanitize_text(body.recipient.company_name, max_length=200, field_name="company_name"),
+        recipient_title=sanitize_text(body.recipient.title or "Recruiter", max_length=200, field_name="recipient_title"),
+        original_subject=sanitize_text(body.original_subject, max_length=500, field_name="original_subject"),
+        original_snippet=sanitize_text(body.original_body_snippet[:200], max_length=500, field_name="original_snippet"),
         days_since=body.days_since_sent,
         followup_number=body.followup_number,
         tone=body.tone,

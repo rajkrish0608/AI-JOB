@@ -14,14 +14,19 @@ Endpoint:
 import asyncio
 import json
 import re
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
-from anthropic import AsyncAnthropic
+import google.generativeai as genai
+import os
 
 router = APIRouter()
-ai_client = AsyncAnthropic()
+
+# Initialize Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+_ai_model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ── Models ───────────────────────────────────────────────────────────
 
@@ -47,25 +52,20 @@ class LinkedInApplyResponse(BaseModel):
 
 
 async def _ai_answer_question(question: str, options: list[str], profile: dict) -> str:
-    """Use Claude to answer a form question using the user's profile."""
+    """Use Gemini to answer a form question using the user's profile."""
     try:
-        resp = await ai_client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=200,
-            temperature=0,
-            system="You answer job application form questions concisely based on the candidate profile. Return ONLY the answer text, nothing else.",
-            messages=[{
-                "role": "user",
-                "content": f"Question: {question}\nOptions (if any): {json.dumps(options)}\nCandidate Profile: {json.dumps(profile)}\n\nAnswer:"
-            }]
+        prompt = f"You answer job application form questions concisely based on the candidate profile. Return ONLY the answer text, nothing else.\n\nQuestion: {question}\nOptions (if any): {json.dumps(options)}\nCandidate Profile: {json.dumps(profile)}\n\nAnswer:"
+        response = await _ai_model.generate_content_async(
+            prompt,
+            generation_config={"temperature": 0, "max_output_tokens": 200},
         )
-        return resp.content[0].text.strip()
+        return response.text.strip()
     except Exception:
         return ""
 
 
 @router.post("/apply/linkedin", response_model=LinkedInApplyResponse)
-async def apply_linkedin_easy(body: LinkedInApplyRequest):
+async def apply_linkedin_easy(body: LinkedInApplyRequest, user: dict = Depends(get_current_user)):
     """
     Automates the LinkedIn Easy Apply flow for a single job listing.
     

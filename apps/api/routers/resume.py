@@ -1,14 +1,17 @@
 import os
 import json
 import pdfplumber
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from anthropic import AsyncAnthropic
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
+from auth import get_current_user
+import google.generativeai as genai
+from gemini_retry import generate_with_retry
+import os
 
 router = APIRouter()
 
-# Initialize Anthropic Client
-# In development, it will look for ANTHROPIC_API_KEY env var automatically
-client = AsyncAnthropic()
+# Initialize Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 RESUME_EXTRACTION_PROMPT = """
 You are an expert AI recruiter and data extractor.
@@ -92,7 +95,7 @@ IMPORTANT:
 """
 
 @router.post("/parse-resume")
-async def parse_resume(file: UploadFile = File(...)):
+async def parse_resume(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     if not file.filename.endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported.")
 
@@ -108,24 +111,18 @@ async def parse_resume(file: UploadFile = File(...)):
         if not text.strip():
             raise HTTPException(status_code=400, detail="Could not extract text from PDF.")
 
-        # Call Claude to parse the text into structured JSON definition
-        response = await client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=4096,
-            temperature=0.0,
-            system="You are an extraction API that only outputs valid JSON.",
-            messages=[
-                {
-                    "role": "user",
-                    "content": RESUME_EXTRACTION_PROMPT.replace("{resume_text}", text)
-                }
-            ]
+        # Call Gemini to parse the text into structured JSON
+        prompt = f"You are an extraction API that only outputs valid JSON.\n\n{RESUME_EXTRACTION_PROMPT.replace('{resume_text}', text)}"
+        response = await generate_with_retry(
+            model,
+            prompt,
+            generation_config={"temperature": 0.0, "max_output_tokens": 4096},
         )
 
         try:
-            # Safely parse the JSON returned by Claude
-            content = response.content[0].text.strip()
-            # Remove markdown if Claude hallucinates it despite system prompt
+            # Safely parse the JSON returned by Gemini
+            content = response.text.strip()
+            # Remove markdown if model hallucinates it despite system prompt
             if content.startswith("```json"):
                 content = content[7:-3].strip()
             parsed_json = json.loads(content)

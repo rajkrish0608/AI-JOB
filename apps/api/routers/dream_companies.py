@@ -9,7 +9,8 @@ Endpoints:
   POST /api/companies/discover       → Discover HR contacts for ONE company
 """
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 
@@ -61,7 +62,7 @@ class DiscoverResponse(BaseModel):
 
 
 @router.post("/companies/scan", response_model=list[ScanResult], tags=["companies"])
-async def trigger_company_scan(body: ScanRequest):
+async def trigger_company_scan(body: ScanRequest, user: dict = Depends(get_current_user)):
     """
     Triggers a manual or cron-driven scan for the given user's dream companies.
     """
@@ -73,7 +74,7 @@ async def trigger_company_scan(body: ScanRequest):
 
 
 @router.get("/companies/scan/trigger", tags=["companies"])
-async def trigger_scan_via_get(user_id: str = Query(...)):
+async def trigger_scan_via_get(user_id: str = Query(...), user: dict = Depends(get_current_user)):
     """GET-based trigger for easy testing and cron-compatible HTTP calls."""
     try:
         results = await scan_all_companies_for_user(user_id=user_id)
@@ -83,7 +84,7 @@ async def trigger_scan_via_get(user_id: str = Query(...)):
 
 
 @router.post("/companies/discover", response_model=DiscoverResponse, tags=["companies"])
-async def discover_contacts(body: DiscoverRequest):
+async def discover_contacts(body: DiscoverRequest, user: dict = Depends(get_current_user)):
     """
     Discover HR/recruiter contacts for a SINGLE dream company using
     Hunter.io and Apollo.io. Deduplicates against existing contacts and

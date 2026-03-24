@@ -1,7 +1,7 @@
 """
 Cover Letter Generator
 =======================
-Uses Claude 3.5 Sonnet to write a tailored, authentic cover letter
+Uses Gemini to write a tailored, authentic cover letter
 from the user's profile and a target job posting.
 
 Endpoint:
@@ -11,7 +11,10 @@ Returns the generated text in Markdown and plain text formats.
 """
 
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Request
+from auth import get_current_user
+from rate_limiter import limiter, AI_LIMIT
+from input_sanitizer import sanitize_text
 from pydantic import BaseModel
 from typing import Optional
 import os
@@ -102,22 +105,23 @@ Return ONLY valid JSON. No markdown fences.
 # ── Endpoint ─────────────────────────────────────────────────────────────────
 
 @router.post("/resume/cover-letter", response_model=CoverLetterResponse)
-async def generate_cover_letter(body: CoverLetterRequest):
+@limiter.limit(AI_LIMIT)
+async def generate_cover_letter(request: Request, body: CoverLetterRequest, user: dict = Depends(get_current_user)):
     """
-    Generates a tailored, ATS-friendly cover letter using Claude.
+    Generates a tailored, ATS-friendly cover letter using Gemini.
     """
     import re
 
     profile_dict = body.profile.model_dump()
-    hiring_manager = body.job.hiring_manager or "Hiring Manager"
+    hiring_manager = sanitize_text(body.job.hiring_manager or "Hiring Manager", max_length=200, field_name="hiring_manager")
 
     try:
         prompt_text = COVER_LETTER_PROMPT.format(
             profile=json.dumps(profile_dict, indent=2),
-            title=body.job.title,
-            company=body.job.company,
+            title=sanitize_text(body.job.title, max_length=200, field_name="job_title"),
+            company=sanitize_text(body.job.company, max_length=200, field_name="company"),
             hiring_manager=hiring_manager,
-            description=body.job.description,
+            description=sanitize_text(body.job.description, max_length=5000, field_name="job_description"),
             tone=body.tone,
             include_hook=str(body.include_hook),
             word_count=body.word_count,

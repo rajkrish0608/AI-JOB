@@ -18,7 +18,8 @@ Returns PDF bytes as application/pdf.
 import os
 import io
 import markdown
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from auth import get_current_user
 from fastapi.responses import Response
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
@@ -81,7 +82,7 @@ def _html_to_pdf(html_string: str) -> bytes:
 
 
 @router.post("/resume/pdf")
-async def export_resume_pdf_from_data(body: PdfFromDataRequest):
+async def export_resume_pdf_from_data(body: PdfFromDataRequest, user: dict = Depends(get_current_user)):
     """
     Full pipeline: JSON resume → HTML template → PDF download.
     """
@@ -105,7 +106,7 @@ async def export_resume_pdf_from_data(body: PdfFromDataRequest):
 
 
 @router.post("/resume/pdf/html")
-async def export_resume_pdf_from_html(body: PdfFromHtmlRequest):
+async def export_resume_pdf_from_html(body: PdfFromHtmlRequest, user: dict = Depends(get_current_user)):
     """
     Direct HTML → PDF. Useful if the frontend has already rendered the HTML.
     """

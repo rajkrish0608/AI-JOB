@@ -14,7 +14,8 @@ Notes:
 """
 
 import re
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -62,6 +63,7 @@ async def search_linkedin_jobs(
     page: int = Query(0, ge=0, description="Page number (0-indexed, 25 results per page)"),
     remote: bool = Query(False, description="Filter for remote jobs only"),
     job_type: str = Query(None, description="F=Full-time, P=Part-time, C=Contract, I=Internship"),
+    user: dict = Depends(get_current_user),
 ):
     """
     Search LinkedIn for job listings matching the given keywords and location.

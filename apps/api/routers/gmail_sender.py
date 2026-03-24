@@ -27,7 +27,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Optional, List
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from auth import get_current_user
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
@@ -280,6 +281,7 @@ async def gmail_oauth_callback(
 async def get_gmail_profile(
     access_token: str = Query(..., description="Gmail access token"),
     refresh_token: Optional[str] = Query(default=None),
+    user: dict = Depends(get_current_user),
 ):
     """
     Returns the authenticated user's Gmail address and mailbox stats.
@@ -303,7 +305,7 @@ async def get_gmail_profile(
 
 
 @router.post("/outreach/gmail/send", response_model=SendEmailResponse)
-async def send_gmail(body: SendEmailRequest):
+async def send_gmail(body: SendEmailRequest, user: dict = Depends(get_current_user)):
     """
     Send a single outreach email via the authenticated user's Gmail account.
     
@@ -352,7 +354,7 @@ async def send_gmail(body: SendEmailRequest):
 
 
 @router.post("/outreach/gmail/send-batch", response_model=BatchSendResponse)
-async def send_batch_gmail(body: BatchSendRequest):
+async def send_batch_gmail(body: BatchSendRequest, user: dict = Depends(get_current_user)):
     """
     Send multiple outreach emails sequentially with a configurable delay
     between each one to avoid triggering Gmail's spam filters.

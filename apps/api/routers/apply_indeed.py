@@ -11,14 +11,19 @@ Endpoint:
 
 import json
 import re
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
-from anthropic import AsyncAnthropic
+import google.generativeai as genai
+import os
 
 router = APIRouter()
-ai_client = AsyncAnthropic()
+
+# Initialize Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+_ai_model = genai.GenerativeModel("gemini-1.5-flash")
 
 class IndeedApplyRequest(BaseModel):
     job_url: str                         
@@ -40,21 +45,19 @@ class IndeedApplyResponse(BaseModel):
     error: Optional[str] = None
 
 async def _ai_answer(question: str, options: list[str], profile: dict) -> str:
-    """Use Claude to answer a job form question."""
+    """Use Gemini to answer a job form question."""
     try:
-        resp = await ai_client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=150,
-            temperature=0,
-            system="You answer job application form questions concisely. Return ONLY the answer.",
-            messages=[{"role": "user", "content": f"Q: {question}\nOptions: {json.dumps(options)}\nProfile: {json.dumps(profile)}\nAnswer:"}]
+        prompt = f"You answer job application form questions concisely. Return ONLY the answer.\n\nQ: {question}\nOptions: {json.dumps(options)}\nProfile: {json.dumps(profile)}\nAnswer:"
+        response = await _ai_model.generate_content_async(
+            prompt,
+            generation_config={"temperature": 0, "max_output_tokens": 150},
         )
-        return resp.content[0].text.strip()
+        return response.text.strip()
     except Exception:
         return ""
 
 @router.post("/apply/indeed", response_model=IndeedApplyResponse)
-async def apply_indeed(body: IndeedApplyRequest):
+async def apply_indeed(body: IndeedApplyRequest, user: dict = Depends(get_current_user)):
     steps: list[ApplyStepLog] = []
     job_title, company = None, None
 

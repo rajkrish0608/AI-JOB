@@ -14,14 +14,19 @@ Endpoint:
 """
 
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeout
-from anthropic import AsyncAnthropic
+import google.generativeai as genai
+import os
 
 router = APIRouter()
-ai_client = AsyncAnthropic()
+
+# Initialize Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+_ai_model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ── Models ───────────────────────────────────────────────────────────
 
@@ -46,25 +51,20 @@ class InternshalaApplyResponse(BaseModel):
 
 
 async def _generate_cover_snippet(job_title: str, company: str, profile: dict) -> str:
-    """Use Claude to write a snappy 2-3 sentence 'Why should you be hired?' snippet."""
+    """Use Gemini to write a snappy 2-3 sentence 'Why should you be hired?' snippet."""
     try:
-        resp = await ai_client.messages.create(
-            model="claude-3-5-sonnet-20240620",
-            max_tokens=250,
-            temperature=0.7,
-            system="You write exactly 2-3 compelling sentences answering 'Why should you be hired for this role?'. Base it on the given profile. No fluff.",
-            messages=[{
-                "role": "user",
-                "content": f"Target Role: {job_title} at {company}\nProfile: {json.dumps(profile)}\n\nAnswer:"
-            }]
+        prompt = f"You write exactly 2-3 compelling sentences answering 'Why should you be hired for this role?'. Base it on the given profile. No fluff.\n\nTarget Role: {job_title} at {company}\nProfile: {json.dumps(profile)}\n\nAnswer:"
+        response = await _ai_model.generate_content_async(
+            prompt,
+            generation_config={"temperature": 0.7, "max_output_tokens": 250},
         )
-        return resp.content[0].text.strip()
+        return response.text.strip()
     except Exception:
         return "I am a strong fit for this role given my background and skills."
 
 
 @router.post("/apply/internshala", response_model=InternshalaApplyResponse)
-async def apply_internshala(body: InternshalaApplyRequest):
+async def apply_internshala(body: InternshalaApplyRequest, user: dict = Depends(get_current_user)):
     steps: list[ApplyStepLog] = []
     job_title = None
     company = None

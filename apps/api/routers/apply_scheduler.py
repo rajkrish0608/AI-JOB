@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
+from auth import get_current_user
 from pydantic import BaseModel, Field
 from typing import List, Dict, Union, Any
 from datetime import datetime, timedelta
@@ -19,7 +20,7 @@ class BulkScheduleRequest(BaseModel):
     start_delay_minutes: int = Field(default=0, ge=0)
 
 @router.post("/apply/schedule/bulk")
-async def schedule_bulk_apply(request: Request, body: BulkScheduleRequest):
+async def schedule_bulk_apply(request: Request, body: BulkScheduleRequest, user: dict = Depends(get_current_user)):
     """
     Schedules multiple job applications with staggered delays to mimic human behavior
     and avoid rate limiting/anti-bot detection.
@@ -66,7 +67,7 @@ async def schedule_bulk_apply(request: Request, body: BulkScheduleRequest):
     }
 
 @router.post("/apply/schedule/cancel/{job_id}")
-async def cancel_scheduled_job(request: Request, job_id: str):
+async def cancel_scheduled_job(request: Request, job_id: str, user: dict = Depends(get_current_user)):
     """
     Cancels a scheduled job if it hasn't started yet.
     """

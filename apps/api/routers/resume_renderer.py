@@ -7,7 +7,8 @@ and converts it into raw HTML using Jinja2 templates.
 
 import os
 import markdown
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from auth import get_current_user
 from fastapi.responses import HTMLResponse
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
@@ -24,7 +25,7 @@ class RenderRequest(BaseModel):
     template_name: str = "professional"
 
 @router.post("/resume/render", response_class=HTMLResponse)
-async def render_resume_to_html(body: RenderRequest):
+async def render_resume_to_html(body: RenderRequest, user: dict = Depends(get_current_user)):
     """
     Renders a JSON resume object (from /resume/generate) into HTML.
     Converts Markdown sections to HTML automatically.

@@ -11,7 +11,8 @@ Strategy:
 
 import re
 import json
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
+from auth import get_current_user
 from pydantic import BaseModel
 from typing import Optional
 import httpx
@@ -60,6 +61,7 @@ async def search_naukri_jobs(
     page: int = Query(1, ge=1, description="Page number (1-indexed)"),
     experience: int = Query(None, description="Minimum years of experience (0 for freshers)"),
     salary: int = Query(None, description="Minimum salary in lakhs"),
+    user: dict = Depends(get_current_user),
 ):
     """
     Search Naukri.com for Indian job listings matching the given criteria.
